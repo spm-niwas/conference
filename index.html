@@ -1,0 +1,2174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NIWAS Conference Manager — Academic Paper & Peer Review Portal</title>
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+        },
+      },
+    };
+  </script>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased selection:bg-indigo-100 selection:text-indigo-800">
+
+  <!-- Two-Pane Application Shell -->
+  <div class="min-h-screen flex flex-col lg:flex-row">
+
+    <!-- Pane 1: Left Dark Slate Sidebar -->
+    <aside class="w-full lg:w-64 lg:h-screen lg:sticky lg:top-0 bg-slate-900 text-slate-200 flex flex-col justify-between shrink-0 overflow-y-auto">
+      <div class="flex-1 min-h-0 overflow-y-auto">
+        <!-- Brand Header -->
+        <div class="p-5 flex items-center justify-between border-b border-slate-800">
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-xl bg-white p-1 flex flex-col items-center justify-center shadow-sm overflow-hidden shrink-0">
+              <!-- Official SPM-NIWAS Emblem -->
+              <svg viewBox="0 0 120 148" class="w-full h-full" xmlns="http://www.w3.org/2000/svg" aria-label="SPM NIWAS Logo">
+                <!-- Blue Water Droplet & Swan Neck/Head -->
+                <path d="M59 4 C46 27, 30 47, 30 69 C30 73, 31 77, 32 81 C37 69, 46 57, 58 54 C72 51, 84 61, 83 73 C82 79, 77 82, 73 79 C71 77, 72 72, 75 70 C74 64, 67 60, 60 62 C52 64, 48 72, 51 81 C54 90, 64 97, 71 106 C61 113, 47 117, 35 120 C46 124, 62 125, 76 119 C94 111, 104 93, 102 72 C99 47, 76 26, 59 4 Z" fill="#2396D3" stroke="#16324A" stroke-width="2.2" stroke-linejoin="round"/>
+                <!-- Green Swan Wing -->
+                <path d="M27 41 C18 51, 16 63, 21 74 C15 70, 11 63, 11 55 C7 66, 9 79, 17 88 C11 85, 7 80, 6 74 C5 88, 13 101, 26 108 C37 114, 51 114, 62 109 C52 102, 44 93, 41 82 C36 69, 34 54, 27 41 Z" fill="#0D6E38" stroke="#16324A" stroke-width="2.2" stroke-linejoin="round"/>
+                <!-- SPM NIWAS Wordmark -->
+                <text x="60" y="142" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-weight="800" font-size="16.5" letter-spacing="0.4" fill="#111827">SPM NIWAS</text>
+              </svg>
+            </div>
+            <div>
+              <span class="font-bold text-white tracking-tight text-base block leading-tight">NIWAS Conference</span>
+              <span class="text-[11px] text-slate-400 font-medium block mt-0.5">Paper &amp; Peer Review Portal</span>
+            </div>
+          </div>
+          <!-- Mobile Menu Toggle -->
+          <button id="mobile-nav-btn" type="button" onclick="toggleMobileNav()" aria-label="Toggle Menu" class="lg:hidden p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800">
+            <i class="fa-solid fa-bars text-lg"></i>
+          </button>
+        </div>
+
+        <!-- Navigation Links -->
+        <nav id="sidebar-nav" class="hidden lg:flex flex-col gap-1.5 p-4">
+          <button data-tab="overview" onclick="switchTab('overview')" class="nav-tab flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all bg-slate-800 text-white shadow-sm">
+            <i class="fa-solid fa-chart-pie w-4 text-center"></i>
+            <span>Dashboard</span>
+          </button>
+
+          <!-- Settings Menu (Visible ONLY to Super Admin & Admin; sub-items always visible) -->
+          <div id="sidebar-settings-section" class="pt-3 mt-1.5 border-t border-slate-800/80 space-y-1">
+            <div class="px-3.5 py-1.5 flex items-center gap-2.5 text-[11px] font-bold uppercase tracking-wider text-slate-400 select-none">
+              <i class="fa-solid fa-gear w-4 text-center text-slate-400"></i>
+              <span>Settings</span>
+            </div>
+            <div id="settings-submenu" class="pl-2 space-y-1">
+              <button data-tab="conferences" onclick="switchTab('conferences')" class="nav-tab w-full flex items-center justify-between px-3.5 py-2 rounded-xl text-xs font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-all">
+                <span class="flex items-center gap-2.5">
+                  <i class="fa-solid fa-calendar-days w-4 text-center"></i>
+                  <span>Conference</span>
+                </span>
+                <span id="nav-badge-conferences" class="text-[11px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded-full">0</span>
+              </button>
+              <button data-tab="users-permissions" onclick="switchTab('users-permissions')" class="nav-tab w-full flex items-center justify-between px-3.5 py-2 rounded-xl text-xs font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-all">
+                <span class="flex items-center gap-2.5">
+                  <i class="fa-solid fa-users-gear w-4 text-center"></i>
+                  <span>Users &amp; Permissions</span>
+                </span>
+                <span id="nav-badge-users" class="text-[11px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded-full">0</span>
+              </button>
+            </div>
+          </div>
+        </nav>
+      </div>
+
+      <!-- Bottom Workspace Info & Reset -->
+      <div class="hidden lg:block p-4 border-t border-slate-800 shrink-0">
+        <div class="bg-slate-800/70 rounded-xl p-3.5 mb-3">
+          <div class="flex items-center gap-2 text-xs font-semibold text-slate-200 mb-1">
+            <i class="fa-solid fa-shield-halved text-slate-400"></i>
+            <span>Double-Blind Guardrail</span>
+          </div>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            Reviewer identities remain hidden. Authors submit externally via Google Form; only whitelisted team members access this portal.
+          </p>
+        </div>
+        <button id="reset-demo-btn" type="button" onclick="resetDemoData()" class="w-full py-2 px-3 rounded-xl text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-800 transition flex items-center justify-center gap-2">
+          <i class="fa-solid fa-rotate-left"></i>
+          <span>Reset Demo Data</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Pane 2: Main Workspace Area -->
+    <main class="flex-1 flex flex-col min-w-0">
+
+      <!-- Top Header Bar -->
+      <header id="top-app-header" class="bg-white border-b border-slate-200 sticky top-0 z-20 px-4 sm:px-8 py-4">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <!-- Dynamic Breadcrumb Navigation -->
+            <nav id="page-breadcrumb" aria-label="Breadcrumb" class="flex flex-wrap items-center gap-1.5 text-xs text-slate-500 mb-1"></nav>
+            <h1 id="page-title" class="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">Dashboard</h1>
+            <p id="page-subtitle" class="text-xs sm:text-sm text-slate-500 mt-0.5">Internal screening, editorial distribution &amp; peer review governance.</p>
+          </div>
+
+          <!-- Top-Right Account & Role Controls -->
+          <div class="flex flex-wrap items-center gap-2.5">
+            <!-- Add Conference Button (Shown inline to the left of gear icon on Conference page) -->
+            <button id="header-add-conference-btn" type="button" onclick="openAddConferenceModal()" class="hidden px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs sm:text-sm font-semibold shadow-sm transition flex items-center gap-2">
+              <i class="fa-solid fa-calendar-plus"></i>
+              <span>Add Conference</span>
+            </button>
+
+            <!-- Sign in with Google Button (Shown ONLY when logged out) -->
+            <button id="google-signin-btn" type="button" onclick="signInWithGoogleAccount()" class="hidden px-3.5 py-2.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-300 text-slate-800 text-xs sm:text-sm font-semibold shadow-2xs transition flex items-center gap-2">
+              <i class="fa-brands fa-google text-indigo-600"></i>
+              <span>Sign in with Google</span>
+            </button>
+
+            <!-- Top-Right Account & Role Gear Dropdown -->
+            <div id="account-gear-container" class="relative">
+              <button id="account-gear-btn" type="button" onclick="toggleAccountMenu(event)" class="relative w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200/80 border border-slate-200 text-slate-700 flex items-center justify-center transition shadow-2xs" title="Account, Role & Logout">
+                <i class="fa-solid fa-gear text-base"></i>
+                <span id="cloud-sync-indicator" class="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-slate-400 ring-2 ring-white animate-pulse" title="Connecting to Cloud"></span>
+              </button>
+
+              <!-- Account & Role Dropdown Menu -->
+              <div id="account-dropdown-menu" class="hidden absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-xl border border-slate-200 z-40 overflow-hidden">
+                <!-- User Identity Header: Google Photo on left, then Name, Designation, Email, and Role -->
+                <div class="p-4 bg-slate-50 border-b border-slate-200 flex items-start gap-3.5">
+                  <div class="w-12 h-12 rounded-full bg-slate-200 text-slate-700 border border-slate-300 overflow-hidden flex items-center justify-center shrink-0 shadow-2xs">
+                    <img id="account-menu-photo" src="" alt="Google Profile Photo" class="hidden w-full h-full object-cover" referrerpolicy="no-referrer" />
+                    <span id="account-menu-initials" class="text-sm font-bold tracking-tight">DS</span>
+                  </div>
+                  <div class="min-w-0 flex-1 space-y-0.5">
+                    <div id="account-menu-name" class="text-sm font-bold text-slate-900 truncate">Director (Super Admin)</div>
+                    <div id="account-menu-designation" class="text-xs font-medium text-slate-600 truncate">Conference Director</div>
+                    <div id="account-menu-email" class="text-xs text-slate-500 truncate">director@spmniwas.in</div>
+                    <div id="account-menu-role-badge" class="text-xs font-medium text-slate-600 truncate">Role: Super Admin</div>
+                  </div>
+                </div>
+
+                <!-- Clean Full-Width Logout Action -->
+                <div class="p-3 bg-white">
+                  <button id="google-signout-btn" type="button" onclick="signOutGoogleAccount()" class="w-full py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold shadow-2xs transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    <span>Logout</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Content Container -->
+      <div class="flex-1 px-4 sm:px-6 py-4 sm:py-6 max-w-7xl w-full mx-auto space-y-6">
+
+        <!-- ACCESS RESTRICTED / SIGNED-OUT GATE CARD (Shown only when logged out or email not whitelisted) -->
+        <section id="access-gate-section" class="hidden bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6 sm:p-8 space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div class="flex items-start gap-4">
+              <div id="access-gate-icon" class="w-12 h-12 rounded-2xl bg-slate-100 text-slate-700 flex items-center justify-center shrink-0">
+                <i class="fa-solid fa-lock text-xl"></i>
+              </div>
+              <div class="space-y-1">
+                <span id="access-gate-badge" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700">
+                  Whitelisted Google Sign-In
+                </span>
+                <h2 id="access-gate-title" class="text-lg sm:text-xl font-bold text-slate-900">Sign in to NIWAS Conference Manager</h2>
+                <p id="access-gate-desc" class="text-xs sm:text-sm text-slate-600 leading-relaxed max-w-2xl">
+                  Authors submit papers externally via Google Form. Sign in with your whitelisted Google account (<strong>Super Admin</strong>, <strong>Admin</strong>, <strong>Editorial Member</strong>, or <strong>Reviewer</strong>) to continue.
+                </p>
+              </div>
+            </div>
+            <div class="flex flex-wrap items-center gap-2.5 shrink-0">
+              <button type="button" onclick="signInWithGoogleAccount()" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs sm:text-sm font-semibold shadow-sm transition flex items-center gap-2">
+                <i class="fa-brands fa-google"></i>
+                <span>Sign in with Google</span>
+              </button>
+              <button type="button" onclick="resumeSuperAdminSession()" class="px-4 py-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs sm:text-sm font-semibold transition">
+                Demo as Super Admin
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- VIEW 1: DASHBOARD (`overview`) -->
+        <div id="view-overview" class="space-y-6">
+          <!-- Session & Role Summary Card -->
+          <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6 space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
+              <div>
+                <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Active Governance Workspace</span>
+                <h2 id="overview-welcome-title" class="text-lg font-bold text-slate-900 mt-0.5">Welcome, Director (Super Admin)</h2>
+              </div>
+              <span id="overview-role-pill" class="px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200 self-start sm:self-auto">Super Admin</span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div class="p-4 rounded-xl bg-slate-50 border border-slate-200/80">
+                <div class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Authenticated Account</div>
+                <div id="overview-account-email" class="text-sm font-bold text-slate-900 mt-1">director@spmniwas.in</div>
+                <div class="text-xs text-emerald-700 font-medium mt-0.5">
+                  <i class="fa-solid fa-circle-check mr-1"></i>Whitelisted Internal Access
+                </div>
+              </div>
+              <div class="p-4 rounded-xl bg-slate-50 border border-slate-200/80">
+                <div class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Current Role</div>
+                <div id="overview-current-role" class="text-sm font-bold text-slate-900 mt-1">Super Admin</div>
+                <div id="overview-role-note" class="text-xs text-slate-500 mt-0.5">Hardcoded Super Admin</div>
+              </div>
+              <div class="p-4 rounded-xl bg-slate-50 border border-slate-200/80">
+                <div class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Settings Menu Access</div>
+                <div id="overview-settings-access" class="text-xs font-semibold text-slate-700 mt-1.5 leading-relaxed">
+                  Enabled — Settings &rarr; Users &amp; Permissions is visible in the left sidebar.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 4 Internal Roles Reference Grid -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs space-y-1.5">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                  <i class="fa-solid fa-crown text-slate-500"></i> Super Admin
+                </span>
+                <span class="text-[10px] font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">Hardcoded</span>
+              </div>
+              <p class="text-[11px] text-slate-600 leading-relaxed">
+                <strong>director@spmniwas.in</strong> — Full conference governance, Settings &amp; Users &amp; Permissions control, and final decisions.
+              </p>
+            </div>
+
+            <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs space-y-1.5">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                  <i class="fa-solid fa-user-gear text-slate-500"></i> Admin
+                </span>
+                <span class="text-[10px] font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">Settings Access</span>
+              </div>
+              <p class="text-[11px] text-slate-600 leading-relaxed">
+                Has access to <strong>Settings &rarr; Users &amp; Permissions</strong>, Google Form intake, and internal desk screening.
+              </p>
+            </div>
+
+            <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs space-y-1.5">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                  <i class="fa-solid fa-share-nodes text-slate-500"></i> Editorial Member
+                </span>
+                <span class="text-[10px] font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">Distribution</span>
+              </div>
+              <p class="text-[11px] text-slate-600 leading-relaxed">
+                Distributes desk-approved manuscripts among Reviewers and tracks review completion.
+              </p>
+            </div>
+
+            <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs space-y-1.5">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                  <i class="fa-solid fa-clipboard-check text-slate-500"></i> Reviewer
+                </span>
+                <span class="text-[10px] font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">Blind Review</span>
+              </div>
+              <p class="text-[11px] text-slate-600 leading-relaxed">
+                Scoped view of assigned blinded manuscripts to submit structured rubric scores and feedback.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- VIEW 2: SUBMISSIONS (`papers`) -->
+        <div id="view-papers" class="hidden">
+          <div class="bg-white rounded-2xl border border-dashed border-slate-300 p-8 text-center space-y-2">
+            <div class="w-11 h-11 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto">
+              <i class="fa-solid fa-file-lines text-lg"></i>
+            </div>
+            <h3 class="text-base font-bold text-slate-900">Google Form Submissions Repository</h3>
+            <p class="text-xs sm:text-sm text-slate-500 max-w-lg mx-auto">
+              Ready to build in upcoming steps: import paper metadata and Google Drive PDF links collected from your author submission Google Form.
+            </p>
+          </div>
+        </div>
+
+        <!-- VIEW 3: EDITORIAL DESK (`desk`) -->
+        <div id="view-desk" class="hidden">
+          <div class="bg-white rounded-2xl border border-dashed border-slate-300 p-8 text-center space-y-2">
+            <div class="w-11 h-11 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center mx-auto">
+              <i class="fa-solid fa-list-check text-lg"></i>
+            </div>
+            <h3 class="text-base font-bold text-slate-900">Editorial Desk Screening &amp; Reviewer Distribution</h3>
+            <p class="text-xs sm:text-sm text-slate-500 max-w-lg mx-auto">
+              Ready to build in upcoming steps: screen papers for completeness, formatting, and scope, then distribute approved papers to Reviewers.
+            </p>
+          </div>
+        </div>
+
+        <!-- VIEW 4: REVIEW QUEUE (`reviews`) -->
+        <div id="view-reviews" class="hidden">
+          <div class="bg-white rounded-2xl border border-dashed border-slate-300 p-8 text-center space-y-2">
+            <div class="w-11 h-11 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto">
+              <i class="fa-solid fa-clipboard-check text-lg"></i>
+            </div>
+            <h3 class="text-base font-bold text-slate-900">Reviewer Blind Peer Review Queue</h3>
+            <p class="text-xs sm:text-sm text-slate-500 max-w-lg mx-auto">
+              Ready to build in upcoming steps: Reviewers evaluate their assigned manuscripts and submit structured scores.
+            </p>
+          </div>
+        </div>
+
+        <!-- VIEW 5A: CONFERENCE (`conferences` — Super Admin & Admin Only) -->
+        <div id="view-conferences" class="hidden space-y-6">
+          <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+            <!-- Top Search Bar & Completed Conferences Checkbox -->
+            <div class="px-5 sm:px-6 py-4 bg-slate-50 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div class="relative flex-1">
+                <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                <input id="conferences-search-input" type="text" oninput="renderConferencesList()" placeholder="Search conferences by name, description, or theme..." class="w-full pl-9 pr-4 py-2 rounded-xl border border-slate-300 bg-white text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+              </div>
+              <label for="show-completed-conferences" class="inline-flex items-center gap-2 text-xs sm:text-sm font-medium text-slate-700 cursor-pointer select-none shrink-0">
+                <input id="show-completed-conferences" type="checkbox" onchange="renderConferencesList()" class="w-4 h-4 rounded border-slate-300 text-slate-800 focus:ring-slate-500 cursor-pointer" />
+                <span>Completed Conferences</span>
+              </label>
+            </div>
+            <div id="conferences-list-container" class="p-4 sm:p-6"></div>
+          </div>
+        </div>
+
+        <!-- VIEW 5B: USERS & PERMISSIONS (`users-permissions` — Super Admin & Admin Only) -->
+        <div id="view-users-permissions" class="hidden space-y-6">
+          <!-- Step 1: Active Conferences Selector List -->
+          <div id="users-active-conferences-card" class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+            <div class="px-5 sm:px-6 py-4 bg-slate-50 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <div class="flex items-center gap-2">
+                  <i class="fa-solid fa-calendar-check text-slate-600"></i>
+                  <h3 class="text-sm font-bold text-slate-900">Active Conferences</h3>
+                  <span id="users-active-conferences-badge" class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-slate-200/80 text-slate-700">0 Active</span>
+                </div>
+                <p class="text-[11px] text-slate-500 mt-0.5">Select an active conference below to open the Add Users form and manage its assigned team.</p>
+              </div>
+              <div class="relative w-full sm:w-64">
+                <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                <input id="users-active-conf-search" type="text" oninput="renderUsersActiveConferences()" placeholder="Filter active conferences..." class="w-full pl-8 pr-3 py-1.5 rounded-xl border border-slate-300 bg-white text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+              </div>
+            </div>
+            <div id="users-active-conferences-container" class="p-4 sm:p-6"></div>
+          </div>
+
+          <!-- Step 2: Inline Add Users Form & Conference Team Roster (Shown when an active conference is clicked) -->
+          <div id="users-selected-conference-panel" class="hidden space-y-6">
+            <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-4 sm:p-6 space-y-4">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+                <div>
+                  <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Selected Conference</span>
+                  <h3 id="users-panel-conf-name" class="text-base sm:text-lg font-bold text-slate-900 mt-0.5"></h3>
+                  <p id="users-panel-conf-dates" class="text-xs text-slate-500 mt-0.5"></p>
+                </div>
+                <button type="button" onclick="clearSelectedUsersConference()" class="self-start sm:self-auto px-3 py-1.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold inline-flex items-center gap-1.5 transition">
+                  <i class="fa-solid fa-arrow-left text-[11px]"></i>
+                  <span>All Active Conferences</span>
+                </button>
+              </div>
+
+              <div>
+                <h4 class="text-sm font-bold text-slate-900">Add User</h4>
+                <p class="text-xs text-slate-500 mt-0.5">Assign Admin, Editorial Member, or Reviewer accounts under this conference.</p>
+              </div>
+
+              <form id="users-page-user-form" onsubmit="handleAddUserFromUsersPage(event)" class="space-y-3">
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+                  <div class="md:col-span-3">
+                    <label for="users-page-user-name" class="block text-xs font-semibold text-slate-700 mb-1">Name <span class="text-rose-500">*</span></label>
+                    <input id="users-page-user-name" type="text" required oninput="formatTitleCaseInput(this)" placeholder="Dr. Ananya Sen" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                  </div>
+                  <div class="md:col-span-3">
+                    <label for="users-page-user-designation" class="block text-xs font-semibold text-slate-700 mb-1">Designation <span class="text-rose-500">*</span></label>
+                    <input id="users-page-user-designation" type="text" required oninput="formatSentenceCaseInput(this)" placeholder="Associate Professor" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                  </div>
+                  <div class="md:col-span-3">
+                    <label for="users-page-user-email" class="block text-xs font-semibold text-slate-700 mb-1">Google Mail <span class="text-rose-500">*</span></label>
+                    <input id="users-page-user-email" type="email" required placeholder="ananya@gmail.com" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                  </div>
+                  <div class="md:col-span-2">
+                    <label for="users-page-user-role" class="block text-xs font-semibold text-slate-700 mb-1">Role <span class="text-rose-500">*</span></label>
+                    <select id="users-page-user-role" onchange="handleUsersPageRoleChange()" class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                      <option value="Admin">Admin</option>
+                      <option value="Editorial Member">Editorial Member</option>
+                      <option value="Reviewer">Reviewer</option>
+                    </select>
+                  </div>
+                  <div class="md:col-span-1">
+                    <button type="submit" class="w-full px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs sm:text-sm font-semibold shadow-sm transition flex items-center justify-center gap-1">
+                      <i class="fa-solid fa-plus text-xs"></i>
+                      <span>Add</span>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Reviewer Multi-Select Conference Themes -->
+                <div id="users-page-reviewer-themes-wrap" class="hidden pt-2">
+                  <div class="flex items-center justify-between mb-1">
+                    <label for="users-page-user-themes" class="block text-xs font-semibold text-slate-700">
+                      Assign Conference Themes (Hold Ctrl / Cmd to select multiple) <span class="text-rose-500">*</span>
+                    </label>
+                    <span id="users-page-themes-selected-count" class="text-[11px] font-semibold text-slate-600">0 selected</span>
+                  </div>
+                  <select id="users-page-user-themes" multiple size="3" onchange="updateUsersPageThemesSelectedCount()" class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"></select>
+                </div>
+
+                <p id="users-page-user-error" class="hidden text-xs font-medium text-rose-600 bg-rose-50 border border-rose-200 rounded-xl px-3.5 py-2"></p>
+              </form>
+            </div>
+
+            <!-- Added Users Table for the Selected Active Conference -->
+            <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+              <!-- Sub-Navigation Tabs: Added Users | Map Reviewers -->
+              <div class="px-4 sm:px-6 pt-3 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3">
+                <div class="flex items-center gap-1">
+                  <button id="users-subtab-added-btn" type="button" onclick="switchUsersSubTab('added')" class="px-4 py-2.5 text-xs sm:text-sm font-bold border-b-2 border-slate-800 text-slate-900 flex items-center gap-1.5 transition">
+                    <span>Added Users</span>
+                    <span id="users-panel-members-badge" class="text-xs font-semibold text-slate-600">(0)</span>
+                  </button>
+                  <button id="users-subtab-map-btn" type="button" onclick="switchUsersSubTab('map-reviewers')" class="px-4 py-2.5 text-xs sm:text-sm font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-800 flex items-center gap-1.5 transition">
+                    <span>Map Reviewers</span>
+                    <span id="users-panel-reviewers-badge" class="text-xs font-semibold text-slate-500">(0)</span>
+                  </button>
+                </div>
+                <div id="users-added-search-wrap" class="relative w-full sm:w-64 pb-2.5 sm:pb-2">
+                  <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                  <input id="users-panel-members-search" type="text" oninput="renderUsersPageSelectedConferencePanel()" placeholder="Search added users..." class="w-full pl-8 pr-3 py-1.5 rounded-xl border border-slate-300 bg-white text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                </div>
+              </div>
+
+              <!-- Sub-Tab 1: Added Users Container -->
+              <div id="users-panel-members-container" class="p-4 sm:p-6"></div>
+
+              <!-- Sub-Tab 2: Map Reviewers Two-Pane Window -->
+              <div id="users-panel-map-reviewers-container" class="hidden p-4 sm:p-6">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+                  <!-- Left Pane: Reviewers List (Sorted by Name by Default) -->
+                  <div class="lg:col-span-5 rounded-xl border border-slate-200 bg-white overflow-hidden flex flex-col">
+                    <div class="p-3 bg-slate-50 border-b border-slate-200 flex items-center gap-2.5">
+                      <div class="relative flex-1 min-w-0">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                        <input id="map-reviewers-search" type="text" oninput="renderMapReviewersPane()" placeholder="Search reviewer name..." class="w-full pl-8 pr-3 py-1.5 rounded-lg border border-slate-300 bg-white text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                      </div>
+                      <label for="map-reviewers-unmapped-only" class="inline-flex items-center gap-1.5 text-xs font-medium text-slate-700 cursor-pointer select-none shrink-0">
+                        <input id="map-reviewers-unmapped-only" type="checkbox" onchange="renderMapReviewersPane()" class="w-3.5 h-3.5 rounded border-slate-300 text-slate-800 focus:ring-slate-500 cursor-pointer" />
+                        <span>Show unmapped</span>
+                      </label>
+                    </div>
+                    <div id="map-reviewers-list" class="divide-y divide-slate-100 max-h-[420px] overflow-y-auto"></div>
+                  </div>
+
+                  <!-- Right Pane: Conference Themes (One Theme Per Line, Multi-Select for Selected Reviewer) -->
+                  <div class="lg:col-span-7 rounded-xl border border-slate-200 bg-white overflow-hidden flex flex-col">
+                    <div class="px-4 py-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between gap-2">
+                      <div>
+                        <h5 class="text-xs font-bold uppercase tracking-wider text-slate-600">Conference Themes</h5>
+                        <p id="map-themes-subtitle" class="text-xs text-slate-500 mt-0.5">Select a reviewer on the left to tag themes.</p>
+                      </div>
+                      <span id="map-themes-count-badge" class="hidden text-xs font-semibold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">0 tagged</span>
+                    </div>
+                    <div id="map-themes-list" class="p-3 space-y-1.5 max-h-[420px] overflow-y-auto"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- VIEW 6: CONFERENCE DETAILS (`conference-details`) -->
+        <div id="view-conference-details" class="hidden space-y-6">
+          <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-4 sm:p-6 space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-100">
+              <div class="flex items-center gap-2 text-xs text-slate-500">
+                <button type="button" onclick="switchTab('conferences')" class="font-semibold text-indigo-600 hover:text-indigo-800 inline-flex items-center gap-1">
+                  <i class="fa-solid fa-arrow-left text-[11px]"></i>
+                  <span>Conference</span>
+                </button>
+                <span>/</span>
+                <span id="conf-detail-breadcrumb-name" class="font-semibold text-slate-700 truncate max-w-[200px] sm:max-w-xs"></span>
+              </div>
+              <button type="button" onclick="editActiveConference()" class="px-3.5 py-1.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold inline-flex items-center gap-1.5 transition">
+                <i class="fa-solid fa-pen text-[11px]"></i>
+                <span>Edit Conference</span>
+              </button>
+            </div>
+
+            <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+              <div class="space-y-1.5">
+                <h2 id="conf-detail-name" class="text-lg sm:text-xl font-bold text-slate-900"></h2>
+                <p id="conf-detail-desc" class="text-xs sm:text-sm text-slate-600 leading-relaxed max-w-3xl"></p>
+              </div>
+              <span id="conf-detail-dates" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 text-slate-700 border border-slate-200 text-xs font-semibold shrink-0 self-start"></span>
+            </div>
+
+            <div class="pt-2 border-t border-slate-100">
+              <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500 block mb-1.5">Conference Themes</span>
+              <div id="conf-detail-themes" class="flex flex-wrap gap-1.5"></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL 1: ADD CONFERENCE DIALOG                                        -->
+  <!-- ===================================================================== -->
+  <div id="add-conference-modal" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-sm overflow-y-auto">
+    <div class="flex min-h-full items-center justify-center p-4 sm:p-6">
+      <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-xl overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between gap-3">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl bg-slate-800 text-white flex items-center justify-center shrink-0">
+              <i id="conf-modal-icon" class="fa-solid fa-calendar-plus"></i>
+            </div>
+            <div>
+              <h3 id="conf-modal-title" class="text-base sm:text-lg font-bold text-slate-900">Add Conference</h3>
+              <p id="conf-modal-subtitle" class="text-xs text-slate-500">Define conference details, dates, and submission themes.</p>
+            </div>
+          </div>
+          <button type="button" onclick="closeAddConferenceModal()" class="w-8 h-8 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200/70 flex items-center justify-center transition">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <form id="add-conference-form" onsubmit="handleAddConferenceDone(event)" class="p-6 space-y-5">
+          <!-- 1. Conference Name -->
+          <div>
+            <label for="conf-name-input" class="block text-xs font-semibold text-slate-700 mb-1.5">
+              Conference Name <span class="text-rose-500">*</span>
+            </label>
+            <input id="conf-name-input" type="text" required placeholder="e.g., NIWAS National Water & Sanitation Symposium 2026" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+          </div>
+
+          <!-- 2. Conference Description (Max 50 Words) -->
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <label for="conf-desc-input" class="block text-xs font-semibold text-slate-700">
+                Conference Description <span class="text-rose-500">*</span>
+              </label>
+              <span id="conf-desc-word-counter" class="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">
+                0 / 50 words
+              </span>
+            </div>
+            <textarea id="conf-desc-input" rows="3" required oninput="handleConferenceDescriptionInput()" placeholder="Brief overview of the conference scope and objectives (maximum 50 words)..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+          </div>
+
+          <!-- 3. Conference Dates -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label for="conf-start-date" class="block text-xs font-semibold text-slate-700 mb-1.5">
+                Start Date <span class="text-rose-500">*</span>
+              </label>
+              <input id="conf-start-date" type="date" required onchange="handleConferenceStartDateChange()" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            </div>
+            <div>
+              <label for="conf-end-date" class="block text-xs font-semibold text-slate-700 mb-1.5">
+                End Date <span class="text-rose-500">*</span>
+              </label>
+              <input id="conf-end-date" type="date" required disabled class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed" />
+            </div>
+          </div>
+
+          <!-- 4. Conference Themes (One per line, optional) -->
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <label for="conf-themes-input" class="block text-xs font-semibold text-slate-700">
+                Conference Themes (One per line, optional)
+              </label>
+              <span id="conf-themes-counter" class="text-[11px] font-medium text-slate-500">0 themes</span>
+            </div>
+            <textarea id="conf-themes-input" rows="4" oninput="updateConferenceThemesCounter()" placeholder="Rural Water Supply &amp; Governance&#10;Faecal Sludge &amp; Septage Management&#10;Climate-Resilient WASH Infrastructure&#10;Community Behavioral Change &amp; IEC" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+          </div>
+
+          <p id="add-conference-error" class="hidden text-xs font-medium text-rose-600 bg-rose-50 border border-rose-200 rounded-xl px-3.5 py-2"></p>
+
+          <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-2.5">
+            <button type="button" onclick="closeAddConferenceModal()" class="px-4 py-2 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-50 text-xs sm:text-sm font-semibold transition">
+              Cancel
+            </button>
+            <button type="submit" class="px-5 py-2 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs sm:text-sm font-semibold shadow-sm transition">
+              Done
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL 2: CONFIRM CONFERENCE CREATION DIALOG                           -->
+  <!-- ===================================================================== -->
+  <div id="confirm-conference-modal" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-sm overflow-y-auto">
+    <div class="flex min-h-full items-center justify-center p-4 sm:p-6">
+      <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-lg overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-200 bg-slate-50 flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-slate-200 text-slate-700 flex items-center justify-center shrink-0">
+            <i class="fa-solid fa-circle-check text-lg"></i>
+          </div>
+          <div>
+            <h3 id="confirm-conf-modal-title" class="text-base font-bold text-slate-900">Confirm New Conference</h3>
+            <p class="text-xs text-slate-500">Please review the conference details below before saving.</p>
+          </div>
+        </div>
+
+        <div class="p-6 space-y-5">
+          <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3 text-xs">
+            <div>
+              <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">Conference Name</span>
+              <span id="confirm-conf-name" class="text-sm font-bold text-slate-900 mt-0.5 block"></span>
+            </div>
+            <div>
+              <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">Description</span>
+              <p id="confirm-conf-desc" class="text-slate-700 mt-0.5 leading-relaxed"></p>
+            </div>
+            <div>
+              <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">Conference Dates</span>
+              <span id="confirm-conf-dates" class="font-semibold text-slate-800 mt-0.5 block"></span>
+            </div>
+            <div>
+              <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500 block mb-1">Conference Themes</span>
+              <ul id="confirm-conf-themes" class="list-disc list-inside space-y-1 text-slate-800 font-medium"></ul>
+            </div>
+          </div>
+
+          <div class="pt-3 border-t border-slate-100 flex items-center justify-end gap-2.5">
+            <button type="button" onclick="cancelConferenceConfirmation()" class="px-4 py-2 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-50 text-xs sm:text-sm font-semibold transition">
+              Back to Edit
+            </button>
+            <button type="button" onclick="confirmSaveConference()" class="px-5 py-2 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs sm:text-sm font-semibold shadow-sm transition flex items-center gap-1.5">
+              <i class="fa-solid fa-check"></i>
+              <span>Confirm &amp; Save</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none px-4 sm:px-0"></div>
+
+  <!-- ===================================================================== -->
+  <!-- JAVASCRIPT APPLICATION LOGIC (WITH FIREBASE CLOUD SYNC & GOOGLE AUTH) -->
+  <!-- ===================================================================== -->
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
+    import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithCustomToken, signInAnonymously, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
+    import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
+
+    const STORAGE_KEY = 'niwas_conference_state_v1';
+    const SUPER_ADMIN_EMAIL = 'director@spmniwas.in';
+
+    const DEFAULT_FIREBASE_CONFIG = {
+      apiKey: 'AIzaSyBggJ8HLnuL_AmO28L39A57fV_m04n-NzA',
+      authDomain: 'niwas-pm.firebaseapp.com',
+      projectId: 'niwas-pm',
+      storageBucket: 'niwas-pm.firebasestorage.app',
+      appId: '1:100000000000:web:niwaspm'
+    };
+
+    const ROLE_CONFIG = {
+      'Super Admin': {
+        badgeClass: 'bg-slate-100 text-slate-800 border border-slate-200',
+        canAccessSettings: true,
+        note: 'Hardcoded Super Admin'
+      },
+      'Admin': {
+        badgeClass: 'bg-slate-100 text-slate-700 border border-slate-200',
+        canAccessSettings: true,
+        note: 'Admin (Settings Access)'
+      },
+      'Editorial Member': {
+        badgeClass: 'bg-slate-100 text-slate-700 border border-slate-200',
+        canAccessSettings: false,
+        note: 'Editorial Distribution'
+      },
+      'Reviewer': {
+        badgeClass: 'bg-slate-100 text-slate-700 border border-slate-200',
+        canAccessSettings: false,
+        note: 'Peer Reviewer'
+      }
+    };
+
+    const memoryStorage = {};
+    const safeStorage = {
+      getItem(key) {
+        try {
+          return window.localStorage.getItem(key);
+        } catch {
+          return Object.prototype.hasOwnProperty.call(memoryStorage, key) ? memoryStorage[key] : null;
+        }
+      },
+      setItem(key, value) {
+        try {
+          window.localStorage.setItem(key, value);
+        } catch {
+          memoryStorage[key] = value;
+        }
+      },
+      removeItem(key) {
+        try {
+          window.localStorage.removeItem(key);
+        } catch {
+          delete memoryStorage[key];
+        }
+      }
+    };
+
+    const DEFAULT_STATE = {
+      isLoggedIn: true,
+      activeRole: 'Super Admin',
+      users: [],
+      conferences: []
+    };
+
+    function getAllConferenceMembers() {
+      const entries = [];
+      (state.conferences || []).forEach(conf => {
+        (Array.isArray(conf.members) ? conf.members : []).forEach(m => {
+          entries.push({
+            ...m,
+            conferenceId: conf.id,
+            conferenceName: conf.name
+          });
+        });
+      });
+      return entries;
+    }
+
+    function getTotalUniqueConferenceUsersCount() {
+      const uniqueEmails = new Set(
+        getAllConferenceMembers()
+          .map(m => (m.email || '').toLowerCase().trim())
+          .filter(Boolean)
+      );
+      return uniqueEmails.size;
+    }
+
+    function loadState() {
+      try {
+        const raw = safeStorage.getItem(STORAGE_KEY);
+        if (!raw) return JSON.parse(JSON.stringify(DEFAULT_STATE));
+        const parsed = JSON.parse(raw);
+        const conferences = Array.isArray(parsed.conferences) ? parsed.conferences : [];
+        return {
+          isLoggedIn: parsed.isLoggedIn !== false,
+          activeRole: ROLE_CONFIG[parsed.activeRole] ? parsed.activeRole : 'Super Admin',
+          users: [],
+          conferences
+        };
+      } catch {
+        return JSON.parse(JSON.stringify(DEFAULT_STATE));
+      }
+    }
+
+    let state = loadState();
+    let currentTab = 'overview';
+    let fbAuth = null;
+    let fbDb = null;
+    let fbUser = null;
+    const fbAppId = 'niwas-conference-portal';
+    let currentGoogleUser = null;
+    let selectedConferenceId = null;
+    let usersPageSelectedConferenceId = null;
+    let usersSubTab = 'added';
+    let selectedReviewerIdForMapping = null;
+    let addedUsersSort = { field: 'name', dir: 'asc' };
+
+    function saveState() {
+      safeStorage.setItem(STORAGE_KEY, JSON.stringify({
+        isLoggedIn: state.isLoggedIn,
+        activeRole: state.activeRole,
+        users: [],
+        conferences: state.conferences || []
+      }));
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toast-container');
+      if (!container) return;
+      const styles = {
+        success: 'bg-slate-900 text-white border-slate-700',
+        warning: 'bg-amber-900 text-white border-amber-700',
+        error: 'bg-rose-900 text-white border-rose-700',
+        info: 'bg-slate-800 text-white border-slate-700'
+      };
+      const icons = {
+        success: 'fa-circle-check text-emerald-400',
+        warning: 'fa-triangle-exclamation text-amber-400',
+        error: 'fa-circle-xmark text-rose-400',
+        info: 'fa-circle-info text-indigo-400'
+      };
+      const toast = document.createElement('div');
+      toast.className = `pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl border shadow-lg text-xs font-medium transition-all duration-300 ${styles[type] || styles.info}`;
+      toast.innerHTML = `<i class="fa-solid ${icons[type] || icons.info} text-sm"></i><span class="flex-1">${escapeHtml(message)}</span>`;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 250);
+      }, 3200);
+    }
+
+    function updateCloudIndicator(status, title) {
+      const dot = document.getElementById('cloud-sync-indicator');
+      if (!dot) return;
+      dot.className = 'absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full ring-2 ring-white';
+      if (status === 'connected') {
+        dot.classList.add('bg-emerald-500');
+        dot.title = title || 'Cloud Sync Active';
+      } else if (status === 'error') {
+        dot.classList.add('bg-rose-500');
+        dot.title = title || 'Local Storage Mode';
+      } else {
+        dot.classList.add('bg-slate-400', 'animate-pulse');
+        dot.title = title || 'Connecting...';
+      }
+    }
+
+    async function syncConferenceToCloud(conf) {
+      saveState();
+      if (!fbDb || !fbUser) return;
+      try {
+        const ref = doc(fbDb, 'artifacts', fbAppId, 'public', 'data', 'conferences', conf.id);
+        await setDoc(ref, {
+          ...conf,
+          updatedAt: Date.now()
+        }, { merge: true });
+      } catch (err) {
+        console.warn('Firestore conference sync skipped:', err);
+      }
+    }
+
+    async function removeConferenceFromCloud(confId) {
+      saveState();
+      if (!fbDb || !fbUser) return;
+      try {
+        const ref = doc(fbDb, 'artifacts', fbAppId, 'public', 'data', 'conferences', confId);
+        await deleteDoc(ref);
+      } catch (err) {
+        console.warn('Firestore conference delete skipped:', err);
+      }
+    }
+
+    function initFirebaseSync() {
+      try {
+        const rawConfig = typeof __firebase_config !== 'undefined' && __firebase_config
+          ? JSON.parse(__firebase_config)
+          : DEFAULT_FIREBASE_CONFIG;
+        const app = initializeApp(rawConfig);
+        fbAuth = getAuth(app);
+        fbDb = getFirestore(app);
+
+        onAuthStateChanged(fbAuth, async (user) => {
+          fbUser = user;
+          if (!user) {
+            try {
+              if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                await signInWithCustomToken(fbAuth, __initial_auth_token);
+              } else {
+                await signInAnonymously(fbAuth);
+              }
+            } catch {
+              updateCloudIndicator('error', 'Offline / Local Storage Mode');
+            }
+            return;
+          }
+
+          if (!user.isAnonymous && user.email) {
+            currentGoogleUser = {
+              name: user.displayName || user.email.split('@')[0],
+              email: user.email.toLowerCase(),
+              photoURL: user.photoURL || ''
+            };
+          }
+
+          updateCloudIndicator('connected', 'Synced with Firestore');
+          const confCol = collection(fbDb, 'artifacts', fbAppId, 'public', 'data', 'conferences');
+          onSnapshot(confCol, (snapshot) => {
+            const remoteConfs = [];
+            snapshot.forEach(docSnap => {
+              const data = docSnap.data();
+              if (data && data.id) {
+                remoteConfs.push({
+                  ...data,
+                  themes: Array.isArray(data.themes) ? data.themes : [],
+                  members: Array.isArray(data.members) ? data.members : []
+                });
+              }
+            });
+
+            if (remoteConfs.length > 0) {
+              const mergedMap = new Map();
+              (state.conferences || []).forEach(c => mergedMap.set(c.id, c));
+              remoteConfs.forEach(rc => {
+                const existing = mergedMap.get(rc.id);
+                if (!existing || (rc.updatedAt || 0) >= (existing.updatedAt || 0)) {
+                  mergedMap.set(rc.id, rc);
+                }
+              });
+              state.conferences = Array.from(mergedMap.values());
+              saveState();
+              renderAll();
+            } else if ((state.conferences || []).length > 0) {
+              state.conferences.forEach(c => syncConferenceToCloud(c));
+            }
+          }, (err) => {
+            console.warn('Firestore snapshot warning:', err);
+            updateCloudIndicator('error', 'Local Storage Mode');
+          });
+        });
+      } catch (err) {
+        console.warn('Firebase initialization fallback to local storage:', err);
+        updateCloudIndicator('error', 'Local Storage Mode');
+      }
+    }
+
+    function getActiveSessionInfo() {
+      const role = state.activeRole || 'Super Admin';
+      if (currentGoogleUser && currentGoogleUser.email) {
+        const matchedMember = getAllConferenceMembers().find(
+          m => (m.email || '').toLowerCase() === currentGoogleUser.email.toLowerCase()
+        );
+        return {
+          name: currentGoogleUser.name || (matchedMember ? matchedMember.name : currentGoogleUser.email),
+          designation: matchedMember && matchedMember.designation ? matchedMember.designation : (role === 'Super Admin' ? 'Conference Director' : role),
+          email: currentGoogleUser.email,
+          photoURL: currentGoogleUser.photoURL || '',
+          role
+        };
+      }
+      if (role === 'Super Admin') {
+        return {
+          name: 'Director (Super Admin)',
+          designation: 'Conference Director',
+          email: SUPER_ADMIN_EMAIL,
+          photoURL: '',
+          role: 'Super Admin'
+        };
+      }
+      const memberForRole = getAllConferenceMembers().find(m => m.role === role);
+      if (memberForRole) {
+        return {
+          name: memberForRole.name,
+          designation: memberForRole.designation || role,
+          email: memberForRole.email,
+          photoURL: '',
+          role
+        };
+      }
+      return {
+        name: `Demo ${role}`,
+        designation: role,
+        email: `${role.toLowerCase().replace(/\s+/g, '.')}@spmniwas.in`,
+        photoURL: '',
+        role
+      };
+    }
+
+    function getInitials(name) {
+      const parts = String(name || 'U').trim().split(/\s+/);
+      if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    }
+
+    function renderAccountUI() {
+      const gate = document.getElementById('access-gate-section');
+      const signInBtn = document.getElementById('google-signin-btn');
+      const gearContainer = document.getElementById('account-gear-container');
+      const settingsSection = document.getElementById('sidebar-settings-section');
+
+      if (!state.isLoggedIn) {
+        if (gate) gate.classList.remove('hidden');
+        if (signInBtn) signInBtn.classList.remove('hidden');
+        if (gearContainer) gearContainer.classList.add('hidden');
+        ['overview', 'conferences', 'users-permissions', 'conference-details'].forEach(id => {
+          const el = document.getElementById(`view-${id}`);
+          if (el) el.classList.add('hidden');
+        });
+        return;
+      }
+
+      if (gate) gate.classList.add('hidden');
+      if (signInBtn) signInBtn.classList.add('hidden');
+      if (gearContainer) gearContainer.classList.remove('hidden');
+
+      const session = getActiveSessionInfo();
+      const roleMeta = ROLE_CONFIG[session.role] || ROLE_CONFIG['Super Admin'];
+
+      if (settingsSection) {
+        if (roleMeta.canAccessSettings) {
+          settingsSection.classList.remove('hidden');
+        } else {
+          settingsSection.classList.add('hidden');
+        }
+      }
+
+      const photoEl = document.getElementById('account-menu-photo');
+      const initialsEl = document.getElementById('account-menu-initials');
+      if (photoEl && initialsEl) {
+        if (session.photoURL) {
+          photoEl.src = session.photoURL;
+          photoEl.classList.remove('hidden');
+          initialsEl.classList.add('hidden');
+        } else {
+          photoEl.classList.add('hidden');
+          initialsEl.textContent = getInitials(session.name);
+          initialsEl.classList.remove('hidden');
+        }
+      }
+
+      const nameEl = document.getElementById('account-menu-name');
+      const desigEl = document.getElementById('account-menu-designation');
+      const emailEl = document.getElementById('account-menu-email');
+      const roleEl = document.getElementById('account-menu-role-badge');
+      if (nameEl) nameEl.textContent = session.name;
+      if (desigEl) desigEl.textContent = session.designation;
+      if (emailEl) emailEl.textContent = session.email;
+      if (roleEl) roleEl.textContent = `Role: ${session.role}`;
+
+      const welcomeTitle = document.getElementById('overview-welcome-title');
+      const rolePill = document.getElementById('overview-role-pill');
+      const accEmail = document.getElementById('overview-account-email');
+      const curRole = document.getElementById('overview-current-role');
+      const roleNote = document.getElementById('overview-role-note');
+      const settingsAccess = document.getElementById('overview-settings-access');
+      if (welcomeTitle) welcomeTitle.textContent = `Welcome, ${session.name}`;
+      if (rolePill) rolePill.textContent = session.role;
+      if (accEmail) accEmail.textContent = session.email;
+      if (curRole) curRole.textContent = session.role;
+      if (roleNote) roleNote.textContent = roleMeta.note;
+      if (settingsAccess) {
+        settingsAccess.textContent = roleMeta.canAccessSettings
+          ? 'Enabled — Settings → Conference & Users & Permissions are visible in the left sidebar.'
+          : 'Restricted — Settings menu is reserved for Super Admin & Admin accounts.';
+      }
+    }
+
+    function toggleAccountMenu(event) {
+      if (event) event.stopPropagation();
+      const menu = document.getElementById('account-dropdown-menu');
+      if (menu) menu.classList.toggle('hidden');
+    }
+
+    document.addEventListener('click', (e) => {
+      const container = document.getElementById('account-gear-container');
+      const menu = document.getElementById('account-dropdown-menu');
+      if (container && menu && !container.contains(e.target)) {
+        menu.classList.add('hidden');
+      }
+    });
+
+    async function signInWithGoogleAccount() {
+      if (!fbAuth) {
+        resumeSuperAdminSession();
+        return;
+      }
+      try {
+        const provider = new GoogleAuthProvider();
+        const result = await signInWithPopup(fbAuth, provider);
+        const user = result.user;
+        const email = (user.email || '').toLowerCase().trim();
+        currentGoogleUser = {
+          name: user.displayName || email.split('@')[0],
+          email,
+          photoURL: user.photoURL || ''
+        };
+
+        if (email === SUPER_ADMIN_EMAIL) {
+          state.activeRole = 'Super Admin';
+        } else {
+          const matched = getAllConferenceMembers().find(m => (m.email || '').toLowerCase() === email);
+          if (matched && ROLE_CONFIG[matched.role]) {
+            state.activeRole = matched.role;
+          } else {
+            showToast('Signed in Google account is not yet assigned to a conference.', 'warning');
+          }
+        }
+        state.isLoggedIn = true;
+        saveState();
+        renderAll();
+        switchTab(currentTab);
+        showToast(`Signed in as ${currentGoogleUser.name}`, 'success');
+      } catch (err) {
+        showToast(err && err.message ? err.message : 'Google sign-in cancelled.', 'warning');
+      }
+    }
+
+    async function signOutGoogleAccount() {
+      const menu = document.getElementById('account-dropdown-menu');
+      if (menu) menu.classList.add('hidden');
+      currentGoogleUser = null;
+      state.isLoggedIn = false;
+      saveState();
+      if (fbAuth) {
+        try {
+          await signOut(fbAuth);
+        } catch {}
+      }
+      renderAccountUI();
+      showToast('Logged out of NIWAS Conference Manager.', 'info');
+    }
+
+    function resumeSuperAdminSession() {
+      currentGoogleUser = null;
+      state.isLoggedIn = true;
+      state.activeRole = 'Super Admin';
+      saveState();
+      renderAll();
+      switchTab('overview');
+      showToast('Signed in as Director (Super Admin).', 'success');
+    }
+
+    function toggleMobileNav() {
+      const nav = document.getElementById('sidebar-nav');
+      if (!nav) return;
+      nav.classList.toggle('hidden');
+      nav.classList.toggle('flex');
+    }
+
+    function renderBreadcrumb(tabId) {
+      const nav = document.getElementById('page-breadcrumb');
+      if (!nav) return;
+
+      const items = [{ label: 'Dashboard', action: "switchTab('overview')" }];
+
+      if (tabId === 'conferences') {
+        items.push({ label: 'Settings', action: "switchTab('conferences')" });
+        items.push({ label: 'Conference', action: null });
+      } else if (tabId === 'users-permissions') {
+        items.push({ label: 'Settings', action: "switchTab('conferences')" });
+        if (usersPageSelectedConferenceId) {
+          const conf = (state.conferences || []).find(c => c.id === usersPageSelectedConferenceId);
+          items.push({ label: 'Users & Permissions', action: 'clearSelectedUsersConference()' });
+          items.push({ label: conf ? conf.name : 'Selected Conference', action: null });
+        } else {
+          items.push({ label: 'Users & Permissions', action: null });
+        }
+      } else if (tabId === 'conference-details') {
+        const conf = (state.conferences || []).find(c => c.id === selectedConferenceId);
+        items.push({ label: 'Settings', action: "switchTab('conferences')" });
+        items.push({ label: 'Conference', action: "switchTab('conferences')" });
+        items.push({ label: conf ? conf.name : 'Conference Details', action: null });
+      } else {
+        items[0].action = null;
+      }
+
+      nav.innerHTML = items.map((item, idx) => {
+        const sep = idx > 0 ? '<span class="text-slate-400">/</span>' : '';
+        if (item.action) {
+          return `${sep}<button type="button" onclick="${item.action}" class="font-medium text-indigo-600 hover:text-indigo-800 hover:underline transition">${escapeHtml(item.label)}</button>`;
+        }
+        return `${sep}<span class="font-semibold text-slate-700">${escapeHtml(item.label)}</span>`;
+      }).join('');
+    }
+
+    function switchTab(tabId) {
+      if (!state.isLoggedIn) {
+        renderAccountUI();
+        return;
+      }
+
+      const roleMeta = ROLE_CONFIG[state.activeRole] || ROLE_CONFIG['Super Admin'];
+      if ((tabId === 'conferences' || tabId === 'users-permissions' || tabId === 'conference-details') && !roleMeta.canAccessSettings) {
+        tabId = 'overview';
+      }
+
+      currentTab = tabId;
+
+      const views = ['overview', 'papers', 'desk', 'reviews', 'conferences', 'users-permissions', 'conference-details'];
+      views.forEach(v => {
+        const el = document.getElementById(`view-${v}`);
+        if (el) {
+          if (v === tabId) el.classList.remove('hidden');
+          else el.classList.add('hidden');
+        }
+      });
+
+      const activeNavTab = tabId === 'conference-details' ? 'conferences' : tabId;
+      document.querySelectorAll('.nav-tab').forEach(btn => {
+        const isTarget = btn.getAttribute('data-tab') === activeNavTab;
+        if (isTarget) {
+          btn.classList.add('bg-slate-800', 'text-white', 'shadow-sm');
+          btn.classList.remove('text-slate-300');
+        } else {
+          btn.classList.remove('bg-slate-800', 'text-white', 'shadow-sm');
+          btn.classList.add('text-slate-300');
+        }
+      });
+
+      const addConfHeaderBtn = document.getElementById('header-add-conference-btn');
+      if (addConfHeaderBtn) {
+        if (tabId === 'conferences') addConfHeaderBtn.classList.remove('hidden');
+        else addConfHeaderBtn.classList.add('hidden');
+      }
+
+      const titleEl = document.getElementById('page-title');
+      const subEl = document.getElementById('page-subtitle');
+      if (tabId === 'overview') {
+        if (titleEl) titleEl.textContent = 'Dashboard';
+        if (subEl) subEl.textContent = 'Internal screening, editorial distribution & peer review governance.';
+      } else if (tabId === 'conferences') {
+        if (titleEl) titleEl.textContent = 'Conference';
+        if (subEl) subEl.textContent = 'Create and manage conference schedules, descriptions, and submission themes.';
+        renderConferencesList();
+      } else if (tabId === 'users-permissions') {
+        if (titleEl) titleEl.textContent = 'Users & Permissions';
+        if (subEl) subEl.textContent = 'Select an active conference to add users and map reviewers to themes.';
+        renderUsersActiveConferences();
+        renderUsersPageSelectedConferencePanel();
+      } else if (tabId === 'conference-details') {
+        const conf = (state.conferences || []).find(c => c.id === selectedConferenceId);
+        if (titleEl) titleEl.textContent = conf ? conf.name : 'Conference Details';
+        if (subEl) subEl.textContent = 'Review conference overview, schedule dates, and configured themes.';
+        renderConferenceDetailsView();
+      }
+
+      renderBreadcrumb(tabId);
+    }
+
+    function getTodayISO() {
+      const now = new Date();
+      const y = now.getFullYear();
+      const m = String(now.getMonth() + 1).padStart(2, '0');
+      const d = String(now.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
+
+    function formatDateDDMMYYYY(isoStr) {
+      if (!isoStr || typeof isoStr !== 'string') return '';
+      const parts = isoStr.split('-');
+      if (parts.length !== 3) return isoStr;
+      return `${parts[2]}-${parts[1]}-${parts[0]}`;
+    }
+
+    function countWords(text) {
+      const cleaned = String(text || '').trim();
+      if (!cleaned) return 0;
+      return cleaned.split(/\s+/).length;
+    }
+
+    function formatTitleCaseInput(inputEl) {
+      if (!inputEl) return;
+      const start = inputEl.selectionStart;
+      const end = inputEl.selectionEnd;
+      inputEl.value = inputEl.value.replace(/\b([a-zA-Z])/g, (m) => m.toUpperCase());
+      try {
+        inputEl.setSelectionRange(start, end);
+      } catch {}
+    }
+
+    function formatSentenceCaseInput(inputEl) {
+      if (!inputEl) return;
+      const start = inputEl.selectionStart;
+      const end = inputEl.selectionEnd;
+      const val = inputEl.value;
+      if (val.length > 0) {
+        inputEl.value = val.replace(/^(\s*)([a-zA-Z])/, (_, sp, ch) => sp + ch.toUpperCase());
+      }
+      try {
+        inputEl.setSelectionRange(start, end);
+      } catch {}
+    }
+
+    function isValidGoogleMail(email) {
+      return /^[^\s@]+@(gmail\.com|googlemail\.com)$/i.test(String(email || '').trim());
+    }
+
+    let editingConferenceId = null;
+    let pendingConferenceDraft = null;
+
+    function openAddConferenceModal(conferenceToEdit = null) {
+      const modal = document.getElementById('add-conference-modal');
+      const form = document.getElementById('add-conference-form');
+      const errEl = document.getElementById('add-conference-error');
+      const titleEl = document.getElementById('conf-modal-title');
+      const subEl = document.getElementById('conf-modal-subtitle');
+      const startInput = document.getElementById('conf-start-date');
+      const endInput = document.getElementById('conf-end-date');
+      if (!modal || !form) return;
+
+      form.reset();
+      if (errEl) errEl.classList.add('hidden');
+      const todayISO = getTodayISO();
+
+      if (conferenceToEdit) {
+        editingConferenceId = conferenceToEdit.id;
+        if (titleEl) titleEl.textContent = 'Edit Conference';
+        if (subEl) subEl.textContent = 'Update conference details, schedule dates, or submission themes.';
+        document.getElementById('conf-name-input').value = conferenceToEdit.name || '';
+        document.getElementById('conf-desc-input').value = conferenceToEdit.description || '';
+        if (startInput) {
+          startInput.removeAttribute('min');
+          startInput.value = conferenceToEdit.startDate || '';
+        }
+        if (endInput) {
+          endInput.disabled = !conferenceToEdit.startDate;
+          if (conferenceToEdit.startDate) endInput.min = conferenceToEdit.startDate;
+          endInput.value = conferenceToEdit.endDate || '';
+        }
+        document.getElementById('conf-themes-input').value = (Array.isArray(conferenceToEdit.themes) ? conferenceToEdit.themes : []).join('\n');
+      } else {
+        editingConferenceId = null;
+        if (titleEl) titleEl.textContent = 'Add Conference';
+        if (subEl) subEl.textContent = 'Define conference details, dates, and submission themes.';
+        if (startInput) {
+          startInput.min = todayISO;
+          startInput.value = '';
+        }
+        if (endInput) {
+          endInput.value = '';
+          endInput.disabled = true;
+        }
+      }
+
+      handleConferenceDescriptionInput();
+      updateConferenceThemesCounter();
+      modal.classList.remove('hidden');
+    }
+
+    function closeAddConferenceModal() {
+      const modal = document.getElementById('add-conference-modal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function handleConferenceDescriptionInput() {
+      const descEl = document.getElementById('conf-desc-input');
+      const counterEl = document.getElementById('conf-desc-word-counter');
+      if (!descEl || !counterEl) return;
+      const words = countWords(descEl.value);
+      counterEl.textContent = `${words} / 50 words`;
+      if (words > 50) {
+        counterEl.className = 'text-[11px] font-semibold px-2 py-0.5 rounded-md bg-rose-100 text-rose-700';
+      } else {
+        counterEl.className = 'text-[11px] font-semibold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600';
+      }
+    }
+
+    function handleConferenceStartDateChange() {
+      const startInput = document.getElementById('conf-start-date');
+      const endInput = document.getElementById('conf-end-date');
+      if (!startInput || !endInput) return;
+      const startVal = startInput.value;
+      if (!startVal) {
+        endInput.value = '';
+        endInput.disabled = true;
+        return;
+      }
+      endInput.disabled = false;
+      endInput.min = startVal;
+      if (endInput.value && endInput.value < startVal) {
+        endInput.value = startVal;
+      }
+    }
+
+    function updateConferenceThemesCounter() {
+      const themesEl = document.getElementById('conf-themes-input');
+      const counterEl = document.getElementById('conf-themes-counter');
+      if (!themesEl || !counterEl) return;
+      const lines = themesEl.value
+        .split('\n')
+        .map(l => l.trim())
+        .filter(Boolean);
+      counterEl.textContent = `${lines.length} ${lines.length === 1 ? 'theme' : 'themes'}`;
+    }
+
+    function handleAddConferenceDone(event) {
+      event.preventDefault();
+      const errEl = document.getElementById('add-conference-error');
+      const showError = (msg) => {
+        if (!errEl) return;
+        errEl.textContent = msg;
+        errEl.classList.remove('hidden');
+      };
+      if (errEl) errEl.classList.add('hidden');
+
+      const name = document.getElementById('conf-name-input').value.trim();
+      const description = document.getElementById('conf-desc-input').value.trim();
+      const startDate = document.getElementById('conf-start-date').value;
+      const endDate = document.getElementById('conf-end-date').value;
+      const rawThemes = document.getElementById('conf-themes-input').value;
+
+      if (!name) return showError('Please enter the Conference Name.');
+      if (!description) return showError('Please enter the Conference Description.');
+      if (countWords(description) > 50) return showError('Conference Description cannot exceed 50 words.');
+      if (!startDate) return showError('Please select a Start Date.');
+      if (!editingConferenceId && startDate < getTodayISO()) {
+        return showError('Conference Start Date cannot be in the past.');
+      }
+      if (!endDate) return showError('Please select an End Date.');
+      if (endDate < startDate) return showError('End Date cannot be earlier than the Start Date.');
+
+      const themes = Array.from(new Set(
+        rawThemes.split('\n').map(t => t.trim()).filter(Boolean)
+      ));
+
+      pendingConferenceDraft = {
+        id: editingConferenceId || `conf_${Date.now()}`,
+        name,
+        description,
+        startDate,
+        endDate,
+        themes
+      };
+
+      document.getElementById('confirm-conf-modal-title').textContent = editingConferenceId
+        ? 'Confirm Conference Updates'
+        : 'Confirm New Conference';
+      document.getElementById('confirm-conf-name').textContent = name;
+      document.getElementById('confirm-conf-desc').textContent = description;
+      const sFmt = formatDateDDMMYYYY(startDate);
+      const eFmt = formatDateDDMMYYYY(endDate);
+      document.getElementById('confirm-conf-dates').textContent = sFmt === eFmt ? sFmt : `${sFmt} to ${eFmt}`;
+
+      const themesUl = document.getElementById('confirm-conf-themes');
+      if (themes.length === 0) {
+        themesUl.innerHTML = '<li class="text-slate-500 list-none">No specific themes added</li>';
+      } else {
+        themesUl.innerHTML = themes.map(t => `<li>${escapeHtml(t)}</li>`).join('');
+      }
+
+      closeAddConferenceModal();
+      document.getElementById('confirm-conference-modal').classList.remove('hidden');
+    }
+
+    function cancelConferenceConfirmation() {
+      document.getElementById('confirm-conference-modal').classList.add('hidden');
+      document.getElementById('add-conference-modal').classList.remove('hidden');
+    }
+
+    function confirmSaveConference() {
+      if (!pendingConferenceDraft) return;
+      const existingIdx = (state.conferences || []).findIndex(c => c.id === pendingConferenceDraft.id);
+      let savedConf;
+
+      if (existingIdx >= 0) {
+        savedConf = {
+          ...state.conferences[existingIdx],
+          ...pendingConferenceDraft,
+          updatedAt: Date.now()
+        };
+        state.conferences[existingIdx] = savedConf;
+      } else {
+        savedConf = {
+          ...pendingConferenceDraft,
+          members: [],
+          createdAt: Date.now(),
+          updatedAt: Date.now()
+        };
+        state.conferences.unshift(savedConf);
+      }
+
+      document.getElementById('confirm-conference-modal').classList.add('hidden');
+      pendingConferenceDraft = null;
+      editingConferenceId = null;
+
+      syncConferenceToCloud(savedConf);
+      renderAll();
+      if (currentTab === 'conference-details' && selectedConferenceId === savedConf.id) {
+        renderConferenceDetailsView();
+        renderBreadcrumb('conference-details');
+      } else {
+        switchTab('conferences');
+      }
+      showToast(`Saved conference "${savedConf.name}".`, 'success');
+    }
+
+    function openConferenceDetails(conferenceId) {
+      const conf = (state.conferences || []).find(c => c.id === conferenceId);
+      if (!conf) return;
+      selectedConferenceId = conferenceId;
+      switchTab('conference-details');
+    }
+
+    function editConferenceById(conferenceId, event) {
+      if (event) event.stopPropagation();
+      const conf = (state.conferences || []).find(c => c.id === conferenceId);
+      if (!conf) return;
+      openAddConferenceModal(conf);
+    }
+
+    function editActiveConference() {
+      if (!selectedConferenceId) return;
+      editConferenceById(selectedConferenceId);
+    }
+
+    function renderConferenceDetailsView() {
+      const conf = (state.conferences || []).find(c => c.id === selectedConferenceId);
+      if (!conf) return;
+
+      const bcName = document.getElementById('conf-detail-breadcrumb-name');
+      const nameEl = document.getElementById('conf-detail-name');
+      const descEl = document.getElementById('conf-detail-desc');
+      const datesEl = document.getElementById('conf-detail-dates');
+      const themesEl = document.getElementById('conf-detail-themes');
+
+      if (bcName) bcName.textContent = conf.name;
+      if (nameEl) nameEl.textContent = conf.name;
+      if (descEl) descEl.textContent = conf.description || 'No description provided.';
+
+      const sFmt = formatDateDDMMYYYY(conf.startDate);
+      const eFmt = formatDateDDMMYYYY(conf.endDate);
+      if (datesEl) {
+        datesEl.innerHTML = `<i class="fa-regular fa-calendar"></i><span>${escapeHtml(sFmt === eFmt ? sFmt : `${sFmt} to ${eFmt}`)}</span>`;
+      }
+
+      const themes = Array.isArray(conf.themes) ? conf.themes : [];
+      if (themesEl) {
+        themesEl.innerHTML = themes.length === 0
+          ? '<span class="text-xs text-slate-400">No themes configured for this conference.</span>'
+          : themes.map(t => `<span class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 border border-slate-200 text-xs font-medium">${escapeHtml(t)}</span>`).join('');
+      }
+    }
+
+    function renderConferencesList() {
+      const container = document.getElementById('conferences-list-container');
+      if (!container) return;
+
+      const searchQuery = (document.getElementById('conferences-search-input')?.value || '').trim().toLowerCase();
+      const showCompleted = Boolean(document.getElementById('show-completed-conferences')?.checked);
+      const todayISO = getTodayISO();
+
+      const filtered = (state.conferences || []).filter(conf => {
+        const isCompleted = Boolean(conf.endDate && conf.endDate < todayISO);
+        if (!showCompleted && isCompleted) return false;
+        if (!searchQuery) return true;
+        const hay = `${conf.name || ''} ${conf.description || ''} ${(conf.themes || []).join(' ')}`.toLowerCase();
+        return hay.includes(searchQuery);
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-10 px-4 border border-dashed border-slate-300 rounded-2xl bg-slate-50/60 space-y-2">
+            <div class="w-10 h-10 rounded-xl bg-slate-200/80 text-slate-600 flex items-center justify-center mx-auto">
+              <i class="fa-solid fa-calendar-days"></i>
+            </div>
+            <h4 class="text-sm font-bold text-slate-800">No conferences found</h4>
+            <p class="text-xs text-slate-500 max-w-md mx-auto">
+              Click <strong>Add Conference</strong> in the top-right header to create a conference, or adjust your search and filter options.
+            </p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = `
+        <div class="overflow-x-auto rounded-xl border border-slate-200">
+          <table class="min-w-full divide-y divide-slate-200 text-left">
+            <thead class="bg-slate-50">
+              <tr>
+                <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-slate-500">Conference Name</th>
+                <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-slate-500">Conference Dates</th>
+                <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-slate-500 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 bg-white">
+              ${filtered.map(conf => {
+                const sFmt = formatDateDDMMYYYY(conf.startDate);
+                const eFmt = formatDateDDMMYYYY(conf.endDate);
+                const dateLabel = sFmt && eFmt ? (sFmt === eFmt ? sFmt : `${sFmt} to ${eFmt}`) : 'Dates TBD';
+                return `
+                  <tr onclick="openConferenceDetails('${escapeHtml(conf.id)}')" class="hover:bg-slate-50 cursor-pointer transition">
+                    <td class="px-4 py-3.5">
+                      <div class="text-xs sm:text-sm font-bold text-slate-900">${escapeHtml(conf.name)}</div>
+                      ${conf.description ? `<div class="text-xs text-slate-500 line-clamp-1 mt-0.5">${escapeHtml(conf.description)}</div>` : ''}
+                    </td>
+                    <td class="px-4 py-3.5 whitespace-nowrap">
+                      <span class="inline-flex items-center gap-1.5 text-xs font-medium text-slate-700">
+                        <i class="fa-regular fa-calendar text-slate-400"></i>
+                        ${escapeHtml(dateLabel)}
+                      </span>
+                    </td>
+                    <td class="px-4 py-3.5 whitespace-nowrap text-right">
+                      <button type="button" onclick="editConferenceById('${escapeHtml(conf.id)}', event)" title="Edit Conference" class="p-2 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition">
+                        <i class="fa-solid fa-pen text-xs"></i>
+                      </button>
+                    </td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    function renderUsersActiveConferences() {
+      const container = document.getElementById('users-active-conferences-container');
+      const badge = document.getElementById('users-active-conferences-badge');
+      if (!container) return;
+
+      const todayISO = getTodayISO();
+      const query = (document.getElementById('users-active-conf-search')?.value || '').trim().toLowerCase();
+      const activeConfs = (state.conferences || []).filter(conf => {
+        const isActive = !conf.endDate || conf.endDate >= todayISO;
+        if (!isActive) return false;
+        if (!query) return true;
+        return `${conf.name || ''} ${conf.description || ''}`.toLowerCase().includes(query);
+      });
+
+      if (badge) {
+        badge.textContent = `${activeConfs.length} Active`;
+      }
+
+      if (activeConfs.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-8 px-4 border border-dashed border-slate-300 rounded-2xl bg-slate-50/60 space-y-2">
+            <h4 class="text-sm font-bold text-slate-800">No Active Conferences Available</h4>
+            <p class="text-xs text-slate-500 max-w-md mx-auto">
+              Create an upcoming or ongoing conference in <strong>Settings &rarr; Conference</strong> first to assign team members.
+            </p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = `
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+          ${activeConfs.map(conf => {
+            const memberCount = Array.isArray(conf.members) ? conf.members.length : 0;
+            const sFmt = formatDateDDMMYYYY(conf.startDate);
+            const eFmt = formatDateDDMMYYYY(conf.endDate);
+            const dateLabel = sFmt && eFmt ? (sFmt === eFmt ? sFmt : `${sFmt} to ${eFmt}`) : 'Dates TBD';
+            return `
+              <button type="button" onclick="selectConferenceForUsersPage('${escapeHtml(conf.id)}')" class="text-left p-4 rounded-xl border border-slate-200 hover:border-slate-400 bg-white hover:bg-slate-50/80 transition flex items-start justify-between gap-3 group">
+                <div class="min-w-0 space-y-1">
+                  <div class="text-sm font-bold text-slate-900 group-hover:text-indigo-700 transition truncate">${escapeHtml(conf.name)}</div>
+                  <div class="text-xs text-slate-500 flex items-center gap-1.5">
+                    <i class="fa-regular fa-calendar text-slate-400"></i>
+                    <span>${escapeHtml(dateLabel)}</span>
+                  </div>
+                </div>
+                <span class="shrink-0 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+                  ${memberCount} ${memberCount === 1 ? 'User' : 'Users'}
+                </span>
+              </button>
+            `;
+          }).join('')}
+        </div>
+      `;
+    }
+
+    function selectConferenceForUsersPage(conferenceId) {
+      const conf = (state.conferences || []).find(c => c.id === conferenceId);
+      if (!conf) return;
+      usersPageSelectedConferenceId = conferenceId;
+      usersSubTab = 'added';
+      selectedReviewerIdForMapping = null;
+      const form = document.getElementById('users-page-user-form');
+      if (form) form.reset();
+      const errEl = document.getElementById('users-page-user-error');
+      if (errEl) errEl.classList.add('hidden');
+      renderBreadcrumb('users-permissions');
+      renderUsersActiveConferences();
+      renderUsersPageSelectedConferencePanel();
+    }
+
+    function clearSelectedUsersConference() {
+      usersPageSelectedConferenceId = null;
+      usersSubTab = 'added';
+      selectedReviewerIdForMapping = null;
+      renderBreadcrumb('users-permissions');
+      renderUsersActiveConferences();
+      renderUsersPageSelectedConferencePanel();
+    }
+
+    function switchUsersSubTab(subTab) {
+      usersSubTab = subTab === 'map-reviewers' ? 'map-reviewers' : 'added';
+      renderUsersPageSelectedConferencePanel();
+    }
+
+    function renderUsersPageSelectedConferencePanel() {
+      const activeListCard = document.getElementById('users-active-conferences-card');
+      const panel = document.getElementById('users-selected-conference-panel');
+      if (!panel) return;
+      const conf = (state.conferences || []).find(c => c.id === usersPageSelectedConferenceId);
+      if (!conf) {
+        if (activeListCard) activeListCard.classList.remove('hidden');
+        panel.classList.add('hidden');
+        return;
+      }
+
+      if (activeListCard) activeListCard.classList.add('hidden');
+      panel.classList.remove('hidden');
+      const nameEl = document.getElementById('users-panel-conf-name');
+      const datesEl = document.getElementById('users-panel-conf-dates');
+      if (nameEl) nameEl.textContent = conf.name;
+      const sFmt = formatDateDDMMYYYY(conf.startDate);
+      const eFmt = formatDateDDMMYYYY(conf.endDate);
+      if (datesEl) datesEl.textContent = sFmt && eFmt ? (sFmt === eFmt ? sFmt : `${sFmt} to ${eFmt}`) : '';
+
+      const themes = Array.isArray(conf.themes) ? conf.themes : [];
+      const themeSelect = document.getElementById('users-page-user-themes');
+      if (themeSelect) {
+        themeSelect.innerHTML = themes.map(t => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join('');
+      }
+      handleUsersPageRoleChange();
+
+      const members = Array.isArray(conf.members) ? conf.members : [];
+      const reviewers = members.filter(m => m.role === 'Reviewer');
+      const badgeEl = document.getElementById('users-panel-members-badge');
+      const reviewersBadgeEl = document.getElementById('users-panel-reviewers-badge');
+      const membersContainer = document.getElementById('users-panel-members-container');
+      const mapContainer = document.getElementById('users-panel-map-reviewers-container');
+      const addedTabBtn = document.getElementById('users-subtab-added-btn');
+      const mapTabBtn = document.getElementById('users-subtab-map-btn');
+      const addedSearchWrap = document.getElementById('users-added-search-wrap');
+
+      if (badgeEl) badgeEl.textContent = `(${members.length})`;
+      if (reviewersBadgeEl) reviewersBadgeEl.textContent = `(${reviewers.length})`;
+
+      if (usersSubTab === 'map-reviewers') {
+        if (addedTabBtn) {
+          addedTabBtn.className = 'px-4 py-2.5 text-xs sm:text-sm font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-800 flex items-center gap-1.5 transition';
+        }
+        if (mapTabBtn) {
+          mapTabBtn.className = 'px-4 py-2.5 text-xs sm:text-sm font-bold border-b-2 border-slate-800 text-slate-900 flex items-center gap-1.5 transition';
+        }
+        if (addedSearchWrap) addedSearchWrap.classList.add('hidden');
+        if (membersContainer) membersContainer.classList.add('hidden');
+        if (mapContainer) mapContainer.classList.remove('hidden');
+        renderMapReviewersPane();
+      } else {
+        if (addedTabBtn) {
+          addedTabBtn.className = 'px-4 py-2.5 text-xs sm:text-sm font-bold border-b-2 border-slate-800 text-slate-900 flex items-center gap-1.5 transition';
+        }
+        if (mapTabBtn) {
+          mapTabBtn.className = 'px-4 py-2.5 text-xs sm:text-sm font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-800 flex items-center gap-1.5 transition';
+        }
+        if (addedSearchWrap) addedSearchWrap.classList.remove('hidden');
+        if (membersContainer) {
+          membersContainer.classList.remove('hidden');
+          membersContainer.innerHTML = buildConferenceMembersTableHTML(conf.id, members);
+        }
+        if (mapContainer) mapContainer.classList.add('hidden');
+      }
+    }
+
+    function selectReviewerForMapping(reviewerId) {
+      selectedReviewerIdForMapping = reviewerId;
+      renderMapReviewersPane();
+    }
+
+    function toggleReviewerThemeTag(themeName) {
+      const conf = (state.conferences || []).find(c => c.id === usersPageSelectedConferenceId);
+      if (!conf || !selectedReviewerIdForMapping) return;
+      const member = (conf.members || []).find(m => m.id === selectedReviewerIdForMapping && m.role === 'Reviewer');
+      if (!member) return;
+
+      const currentThemes = Array.isArray(member.themes) ? [...member.themes] : [];
+      const idx = currentThemes.indexOf(themeName);
+      if (idx >= 0) {
+        currentThemes.splice(idx, 1);
+      } else {
+        currentThemes.push(themeName);
+      }
+      member.themes = currentThemes;
+      conf.updatedAt = Date.now();
+      syncConferenceToCloud(conf);
+      renderMapReviewersPane();
+    }
+
+    function renderMapReviewersPane() {
+      const listEl = document.getElementById('map-reviewers-list');
+      const themesListEl = document.getElementById('map-themes-list');
+      const subtitleEl = document.getElementById('map-themes-subtitle');
+      const countBadgeEl = document.getElementById('map-themes-count-badge');
+      if (!listEl || !themesListEl) return;
+
+      const conf = (state.conferences || []).find(c => c.id === usersPageSelectedConferenceId);
+      if (!conf) return;
+
+      const searchQuery = (document.getElementById('map-reviewers-search')?.value || '').trim().toLowerCase();
+      const unmappedOnly = Boolean(document.getElementById('map-reviewers-unmapped-only')?.checked);
+
+      const allReviewers = (Array.isArray(conf.members) ? conf.members : [])
+        .filter(m => m.role === 'Reviewer')
+        .sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), undefined, { sensitivity: 'base' }));
+
+      const visibleReviewers = allReviewers.filter(r => {
+        const taggedCount = Array.isArray(r.themes) ? r.themes.length : 0;
+        if (unmappedOnly && taggedCount > 0) return false;
+        if (searchQuery && !String(r.name || '').toLowerCase().includes(searchQuery)) return false;
+        return true;
+      });
+
+      if (selectedReviewerIdForMapping && !visibleReviewers.some(r => r.id === selectedReviewerIdForMapping)) {
+        selectedReviewerIdForMapping = visibleReviewers.length > 0 ? visibleReviewers[0].id : null;
+      } else if (!selectedReviewerIdForMapping && visibleReviewers.length > 0) {
+        selectedReviewerIdForMapping = visibleReviewers[0].id;
+      }
+
+      if (allReviewers.length === 0) {
+        listEl.innerHTML = `
+          <div class="p-6 text-center text-xs text-slate-500">
+            No reviewers added to this conference yet. Add users with the <strong>Reviewer</strong> role above.
+          </div>
+        `;
+      } else if (visibleReviewers.length === 0) {
+        listEl.innerHTML = `
+          <div class="p-6 text-center text-xs text-slate-500">
+            No reviewers match the current filter.
+          </div>
+        `;
+      } else {
+        listEl.innerHTML = visibleReviewers.map(rev => {
+          const taggedThemes = Array.isArray(rev.themes) ? rev.themes : [];
+          const isMapped = taggedThemes.length > 0;
+          const isSelected = rev.id === selectedReviewerIdForMapping;
+
+          let rowClasses = 'w-full text-left px-3.5 py-3 transition flex items-center justify-between gap-2.5 border-l-4 ';
+          if (isSelected) {
+            rowClasses += isMapped
+              ? 'bg-emerald-50/90 border-l-emerald-600 ring-1 ring-inset ring-emerald-200'
+              : 'bg-slate-100 border-l-slate-800';
+          } else {
+            rowClasses += isMapped
+              ? 'bg-emerald-50/45 hover:bg-emerald-50/80 border-l-emerald-500'
+              : 'bg-white hover:bg-slate-50 border-l-transparent';
+          }
+
+          const statusPill = isMapped
+            ? `<span class="shrink-0 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">${taggedThemes.length} ${taggedThemes.length === 1 ? 'Theme' : 'Themes'}</span>`
+            : `<span class="shrink-0 px-2 py-0.5 rounded-full text-[11px] font-medium bg-slate-100 text-slate-500 border border-slate-200">Unmapped</span>`;
+
+          return `
+            <button type="button" onclick="selectReviewerForMapping('${escapeHtml(rev.id)}')" class="${rowClasses}">
+              <div class="min-w-0">
+                <div class="text-xs sm:text-sm font-bold ${isMapped ? 'text-emerald-950' : 'text-slate-900'} truncate">${escapeHtml(rev.name)}</div>
+                <div class="text-[11px] ${isMapped ? 'text-emerald-700' : 'text-slate-500'} truncate">${escapeHtml(rev.designation || rev.email)}</div>
+              </div>
+              ${statusPill}
+            </button>
+          `;
+        }).join('');
+      }
+
+      const confThemes = Array.isArray(conf.themes) ? conf.themes : [];
+      const activeReviewer = allReviewers.find(r => r.id === selectedReviewerIdForMapping) || null;
+
+      if (!activeReviewer) {
+        if (subtitleEl) subtitleEl.textContent = 'Select a reviewer on the left to tag themes.';
+        if (countBadgeEl) countBadgeEl.classList.add('hidden');
+        themesListEl.innerHTML = confThemes.length === 0
+          ? `<div class="p-6 text-center text-xs text-slate-500 border border-dashed border-slate-200 rounded-xl">No themes configured for this conference.</div>`
+          : confThemes.map(theme => `
+              <div class="px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50/70 text-xs sm:text-sm text-slate-500 flex items-center gap-2.5">
+                <i class="fa-regular fa-square text-slate-300"></i>
+                <span>${escapeHtml(theme)}</span>
+              </div>
+            `).join('');
+        return;
+      }
+
+      const selectedSet = new Set(Array.isArray(activeReviewer.themes) ? activeReviewer.themes : []);
+      if (subtitleEl) {
+        subtitleEl.innerHTML = `Tagging themes for <strong class="text-slate-800">${escapeHtml(activeReviewer.name)}</strong>`;
+      }
+      if (countBadgeEl) {
+        countBadgeEl.classList.remove('hidden');
+        countBadgeEl.textContent = `${selectedSet.size} tagged`;
+      }
+
+      if (confThemes.length === 0) {
+        themesListEl.innerHTML = `
+          <div class="p-6 text-center text-xs text-slate-500 border border-dashed border-slate-200 rounded-xl">
+            No themes configured for this conference. Edit the conference to add themes.
+          </div>
+        `;
+        return;
+      }
+
+      themesListEl.innerHTML = confThemes.map(theme => {
+        const isChecked = selectedSet.has(theme);
+        const itemClass = isChecked
+          ? 'w-full text-left px-3.5 py-2.5 rounded-xl border border-emerald-300 bg-emerald-50/80 text-emerald-950 font-semibold text-xs sm:text-sm flex items-center gap-3 transition cursor-pointer'
+          : 'w-full text-left px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-medium text-xs sm:text-sm flex items-center gap-3 transition cursor-pointer';
+        return `
+          <button type="button" onclick="toggleReviewerThemeTag('${escapeHtml(theme)}')" class="${itemClass}">
+            <span class="w-4 h-4 rounded flex items-center justify-center shrink-0 ${isChecked ? 'bg-emerald-600 text-white' : 'border border-slate-300 bg-white'}">
+              ${isChecked ? '<i class="fa-solid fa-check text-[10px]"></i>' : ''}
+            </span>
+            <span class="flex-1 leading-snug">${escapeHtml(theme)}</span>
+          </button>
+        `;
+      }).join('');
+    }
+
+    function handleUsersPageRoleChange() {
+      const roleVal = document.getElementById('users-page-user-role')?.value;
+      const themesWrap = document.getElementById('users-page-reviewer-themes-wrap');
+      const conf = (state.conferences || []).find(c => c.id === usersPageSelectedConferenceId);
+      const hasThemes = conf && Array.isArray(conf.themes) && conf.themes.length > 0;
+      if (!themesWrap) return;
+      if (roleVal === 'Reviewer' && hasThemes) {
+        themesWrap.classList.remove('hidden');
+        updateUsersPageThemesSelectedCount();
+      } else {
+        themesWrap.classList.add('hidden');
+      }
+    }
+
+    function updateUsersPageThemesSelectedCount() {
+      const sel = document.getElementById('users-page-user-themes');
+      const label = document.getElementById('users-page-themes-selected-count');
+      if (!sel || !label) return;
+      const count = Array.from(sel.selectedOptions).length;
+      label.textContent = `${count} selected`;
+    }
+
+    function handleAddUserFromUsersPage(event) {
+      event.preventDefault();
+      const conf = (state.conferences || []).find(c => c.id === usersPageSelectedConferenceId);
+      if (!conf) return;
+
+      const errEl = document.getElementById('users-page-user-error');
+      const showError = (msg) => {
+        if (!errEl) return;
+        errEl.textContent = msg;
+        errEl.classList.remove('hidden');
+      };
+      if (errEl) errEl.classList.add('hidden');
+
+      const nameInput = document.getElementById('users-page-user-name');
+      const desigInput = document.getElementById('users-page-user-designation');
+      formatTitleCaseInput(nameInput);
+      formatSentenceCaseInput(desigInput);
+
+      const name = nameInput.value.trim();
+      const designation = desigInput.value.trim();
+      const email = document.getElementById('users-page-user-email').value.trim().toLowerCase();
+      const role = document.getElementById('users-page-user-role').value;
+
+      if (!name) return showError('Please enter the user Name.');
+      if (!designation) return showError('Please enter the user Designation.');
+      if (!isValidGoogleMail(email)) {
+        return showError('Please enter a valid Google Mail address (@gmail.com or @googlemail.com).');
+      }
+
+      const members = Array.isArray(conf.members) ? conf.members : [];
+      if (members.some(m => (m.email || '').toLowerCase() === email)) {
+        return showError('This Google Mail address is already added to this conference.');
+      }
+
+      let selectedThemes = [];
+      const confThemes = Array.isArray(conf.themes) ? conf.themes : [];
+      if (role === 'Reviewer' && confThemes.length > 0) {
+        const sel = document.getElementById('users-page-user-themes');
+        selectedThemes = sel ? Array.from(sel.selectedOptions).map(o => o.value) : [];
+      }
+
+      const newMember = {
+        id: `usr_${Date.now()}`,
+        name,
+        designation,
+        email,
+        role,
+        themes: selectedThemes,
+        addedAt: Date.now()
+      };
+
+      conf.members = [newMember, ...members];
+      conf.updatedAt = Date.now();
+
+      document.getElementById('users-page-user-form').reset();
+      handleUsersPageRoleChange();
+      syncConferenceToCloud(conf);
+      renderAll();
+      renderUsersPageSelectedConferencePanel();
+      showToast(`Added ${name} (${role}) to ${conf.name}.`, 'success');
+    }
+
+    function toggleAddedUsersSort(field) {
+      if (addedUsersSort.field === field) {
+        addedUsersSort.dir = addedUsersSort.dir === 'asc' ? 'desc' : 'asc';
+      } else {
+        addedUsersSort.field = field;
+        addedUsersSort.dir = 'asc';
+      }
+      renderUsersPageSelectedConferencePanel();
+    }
+
+    function removeUserFromConference(conferenceId, memberId) {
+      const conf = (state.conferences || []).find(c => c.id === conferenceId);
+      if (!conf) return;
+      conf.members = (conf.members || []).filter(m => m.id !== memberId);
+      conf.updatedAt = Date.now();
+      syncConferenceToCloud(conf);
+      renderAll();
+      renderUsersPageSelectedConferencePanel();
+      showToast('Removed user from conference.', 'info');
+    }
+
+    function buildConferenceMembersTableHTML(conferenceId, members) {
+      const searchQuery = (document.getElementById('users-panel-members-search')?.value || '').trim().toLowerCase();
+      const filtered = (members || []).filter(m => {
+        if (!searchQuery) return true;
+        const hay = `${m.name || ''} ${m.designation || ''} ${m.email || ''} ${m.role || ''}`.toLowerCase();
+        return hay.includes(searchQuery);
+      });
+
+      const sorted = [...filtered].sort((a, b) => {
+        const dir = addedUsersSort.dir === 'asc' ? 1 : -1;
+        const field = addedUsersSort.field;
+        const valA = String(a[field] || '').toLowerCase();
+        const valB = String(b[field] || '').toLowerCase();
+        return valA.localeCompare(valB) * dir;
+      });
+
+      if (sorted.length === 0) {
+        return `
+          <div class="text-center py-8 px-4 border border-dashed border-slate-300 rounded-2xl bg-slate-50/60">
+            <p class="text-xs text-slate-500">No users added yet or matching your search.</p>
+          </div>
+        `;
+      }
+
+      const sortIcon = (field) => {
+        if (addedUsersSort.field !== field) return '<i class="fa-solid fa-sort text-slate-300 ml-1"></i>';
+        return addedUsersSort.dir === 'asc'
+          ? '<i class="fa-solid fa-sort-up text-slate-700 ml-1"></i>'
+          : '<i class="fa-solid fa-sort-down text-slate-700 ml-1"></i>';
+      };
+
+      return `
+        <div class="overflow-x-auto rounded-xl border border-slate-200">
+          <table class="min-w-full divide-y divide-slate-200 text-left">
+            <thead class="bg-slate-50">
+              <tr>
+                <th onclick="toggleAddedUsersSort('name')" class="px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-slate-500 cursor-pointer select-none hover:text-slate-800">
+                  Name &amp; Designation ${sortIcon('name')}
+                </th>
+                <th onclick="toggleAddedUsersSort('email')" class="px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-slate-500 cursor-pointer select-none hover:text-slate-800">
+                  Google Mail ${sortIcon('email')}
+                </th>
+                <th onclick="toggleAddedUsersSort('role')" class="px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-slate-500 cursor-pointer select-none hover:text-slate-800">
+                  Role ${sortIcon('role')}
+                </th>
+                <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-slate-500 text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 bg-white">
+              ${sorted.map(m => {
+                return `
+                  <tr class="hover:bg-slate-50/80 transition">
+                    <td class="px-4 py-3">
+                      <div class="text-xs sm:text-sm font-bold text-slate-900">${escapeHtml(m.name)}</div>
+                      <div class="text-xs text-slate-500">${escapeHtml(m.designation || '')}</div>
+                    </td>
+                    <td class="px-4 py-3 text-xs text-slate-700 font-medium">${escapeHtml(m.email)}</td>
+                    <td class="px-4 py-3">
+                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+                        ${escapeHtml(m.role)}
+                      </span>
+                    </td>
+                    <td class="px-4 py-3 text-right">
+                      <button type="button" onclick="removeUserFromConference('${escapeHtml(conferenceId)}', '${escapeHtml(m.id)}')" title="Remove User" class="p-2 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition">
+                        <i class="fa-solid fa-trash-can text-xs"></i>
+                      </button>
+                    </td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    function resetDemoData() {
+      safeStorage.removeItem(STORAGE_KEY);
+      state = JSON.parse(JSON.stringify(DEFAULT_STATE));
+      selectedConferenceId = null;
+      usersPageSelectedConferenceId = null;
+      usersSubTab = 'added';
+      selectedReviewerIdForMapping = null;
+      renderAll();
+      switchTab('overview');
+      showToast('Local workspace state reset.', 'info');
+    }
+
+    function renderAll() {
+      const confBadge = document.getElementById('nav-badge-conferences');
+      const usersBadge = document.getElementById('nav-badge-users');
+      if (confBadge) confBadge.textContent = String((state.conferences || []).length);
+      if (usersBadge) usersBadge.textContent = String(getTotalUniqueConferenceUsersCount());
+
+      renderAccountUI();
+      renderConferencesList();
+      renderUsersActiveConferences();
+      if (usersPageSelectedConferenceId) {
+        renderUsersPageSelectedConferencePanel();
+      }
+      if (currentTab === 'conference-details' && selectedConferenceId) {
+        renderConferenceDetailsView();
+      }
+    }
+
+    Object.assign(window, {
+      toggleMobileNav,
+      switchTab,
+      toggleAccountMenu,
+      signInWithGoogleAccount,
+      signOutGoogleAccount,
+      resumeSuperAdminSession,
+      openAddConferenceModal,
+      closeAddConferenceModal,
+      handleConferenceDescriptionInput,
+      handleConferenceStartDateChange,
+      updateConferenceThemesCounter,
+      handleAddConferenceDone,
+      cancelConferenceConfirmation,
+      confirmSaveConference,
+      openConferenceDetails,
+      editConferenceById,
+      editActiveConference,
+      renderConferencesList,
+      renderUsersActiveConferences,
+      selectConferenceForUsersPage,
+      clearSelectedUsersConference,
+      switchUsersSubTab,
+      selectReviewerForMapping,
+      toggleReviewerThemeTag,
+      renderMapReviewersPane,
+      handleUsersPageRoleChange,
+      updateUsersPageThemesSelectedCount,
+      handleAddUserFromUsersPage,
+      toggleAddedUsersSort,
+      removeUserFromConference,
+      formatTitleCaseInput,
+      formatSentenceCaseInput,
+      resetDemoData
+    });
+
+    initFirebaseSync();
+    renderAll();
+    switchTab('overview');
+  </script>
+</body>
+</html>
