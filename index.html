@@ -173,18 +173,15 @@
             <i class="fa-solid fa-lock text-xl"></i>
           </div>
           <div class="space-y-1.5">
-            <h2 id="access-gate-title" class="text-lg font-bold text-slate-900">Signed Out of NIWAS Conference Portal</h2>
+            <h2 id="access-gate-title" class="text-lg font-bold text-slate-900">Sign In to NIWAS Conference Portal</h2>
             <p id="access-gate-message" class="text-xs sm:text-sm text-slate-500">
-              Sign in with your Google Mail account to access your assigned conference workspace, or sign back in as the hardcoded Super Admin.
+              Sign in with your authorized Google Mail account to access the portal. Access is restricted exclusively to pre-authorized conference personnel (System Admin, Conference Admin, Editorial Member, Scrutinizer, or Reviewer).
             </p>
           </div>
           <div id="access-gate-actions" class="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
-            <button type="button" onclick="signInWithGoogleAccount()" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs sm:text-sm font-semibold shadow-sm transition flex items-center justify-center gap-2">
+            <button type="button" onclick="signInWithGoogleAccount()" class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs sm:text-sm font-semibold shadow-sm transition flex items-center justify-center gap-2">
               <i class="fa-brands fa-google"></i>
               <span>Sign in with Google</span>
-            </button>
-            <button type="button" onclick="resumeSuperAdminSession()" class="w-full sm:w-auto px-4 py-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs sm:text-sm font-semibold transition">
-              Sign in as Super Admin
             </button>
           </div>
         </div>
@@ -1063,6 +1060,17 @@
     const GAS_EMAIL_SECRET_KEY = 'NIWAS_2026_SECURE_KEY';
     const PORTAL_LIVE_URL = 'https://spm-niwas.github.io/conference/';
 
+    function isDesignPreviewEnvironment() {
+      try {
+        const host = String(window.location.hostname || '').toLowerCase();
+        const inIframe = window.self !== window.top;
+        if (host === 'spm-niwas.github.io' && !inIframe) return false;
+        return inIframe || !host || host === 'localhost' || host === '127.0.0.1' || host.includes('googleusercontent') || host.includes('scf.usercontent');
+      } catch {
+        return true;
+      }
+    }
+
     const DEFAULT_FIREBASE_CONFIG = {
       apiKey: 'AIzaSyBggJ8HLnuL_AmO28L39A57fV_m04n-NzA',
       authDomain: 'niwas-pm.firebaseapp.com',
@@ -1130,20 +1138,19 @@
     };
 
     const DEFAULT_STATE = {
-      isLoggedIn: true,
-      activeRole: 'Super Admin',
+      isLoggedIn: isDesignPreviewEnvironment(),
+      activeRole: isDesignPreviewEnvironment() ? 'Super Admin' : '',
       users: [],
       systemAdmins: [],
       conferences: []
     };
 
     function loadState() {
+      const inDesign = isDesignPreviewEnvironment();
       try {
         const raw = safeStorage.getItem(STORAGE_KEY);
         if (!raw) return JSON.parse(JSON.stringify(DEFAULT_STATE));
         const parsed = JSON.parse(raw);
-        const rawLoadedRole = parsed.activeRole === 'Admin' ? 'Conference Admin' : parsed.activeRole;
-        const loadedRole = ROLE_CONFIG[rawLoadedRole] ? rawLoadedRole : 'Super Admin';
         const systemAdmins = Array.isArray(parsed.systemAdmins) ? parsed.systemAdmins : [];
         const conferences = Array.isArray(parsed.conferences) ? parsed.conferences.map(c => ({
           ...c,
@@ -1151,9 +1158,10 @@
             ? c.members.map(m => ({ ...m, role: m.role === 'Admin' ? 'Conference Admin' : m.role }))
             : []
         })) : [];
+        const designLoggedIn = inDesign ? (parsed.isLoggedIn !== false) : false;
         return {
-          isLoggedIn: parsed.isLoggedIn !== undefined ? Boolean(parsed.isLoggedIn) : true,
-          activeRole: loadedRole,
+          isLoggedIn: designLoggedIn,
+          activeRole: designLoggedIn ? 'Super Admin' : '',
           users: [],
           systemAdmins,
           conferences
@@ -1167,7 +1175,7 @@
       if (currentGoogleUser && currentGoogleUser.email) {
         return String(currentGoogleUser.email).toLowerCase().trim() === SUPER_ADMIN_EMAIL;
       }
-      return state.activeRole === 'Super Admin';
+      return Boolean(isDesignPreviewEnvironment() && state.isLoggedIn && state.activeRole === 'Super Admin');
     }
 
     function normalizeRoleName(role) {
@@ -1183,36 +1191,36 @@
     }
 
     function resolveEffectiveUserRole() {
-      if (currentGoogleUser && currentGoogleUser.email) {
-        const email = String(currentGoogleUser.email).toLowerCase().trim();
-        if (email === SUPER_ADMIN_EMAIL) return 'Super Admin';
-        if (isEmailSystemAdmin(email)) return 'System Admin';
-
-        const matchedRoles = [];
-        (state.conferences || []).forEach(conf => {
-          if (conf.isClosed || !Array.isArray(conf.members)) return;
-          conf.members.forEach(m => {
-            const normalized = normalizeRoleName(m.role);
-            if (String(m.email || '').toLowerCase().trim() === email && normalized && normalized !== 'Super Admin') {
-              matchedRoles.push(normalized);
-            }
-          });
-        });
-
-        if (matchedRoles.includes('Conference Admin')) return 'Conference Admin';
-        if (matchedRoles.includes('Editorial Member')) return 'Editorial Member';
-        if (matchedRoles.includes('Scrutinizer')) return 'Scrutinizer';
-        if (matchedRoles.includes('Reviewer')) return 'Reviewer';
+      if (isHardcodedSuperAdminSession()) return 'Super Admin';
+      if (!currentGoogleUser || !currentGoogleUser.email) {
         return null;
       }
 
-      const normalizedStateRole = normalizeRoleName(state.activeRole);
-      if (normalizedStateRole === 'Super Admin') return 'Super Admin';
-      return ROLE_CONFIG[normalizedStateRole] && normalizedStateRole !== 'Super Admin' ? normalizedStateRole : null;
+      const email = String(currentGoogleUser.email).toLowerCase().trim();
+      if (email === SUPER_ADMIN_EMAIL) return 'Super Admin';
+      if (isEmailSystemAdmin(email)) return 'System Admin';
+
+      const matchedRoles = [];
+      (state.conferences || []).forEach(conf => {
+        if (conf.isClosed || !Array.isArray(conf.members)) return;
+        conf.members.forEach(m => {
+          const normalized = normalizeRoleName(m.role);
+          if (String(m.email || '').toLowerCase().trim() === email && normalized && normalized !== 'Super Admin') {
+            matchedRoles.push(normalized);
+          }
+        });
+      });
+
+      if (matchedRoles.includes('Conference Admin')) return 'Conference Admin';
+      if (matchedRoles.includes('Editorial Member')) return 'Editorial Member';
+      if (matchedRoles.includes('Scrutinizer')) return 'Scrutinizer';
+      if (matchedRoles.includes('Reviewer')) return 'Reviewer';
+      return null;
     }
 
     function hasAuthorizedPortalAccess() {
-      return Boolean(state.isLoggedIn && resolveEffectiveUserRole());
+      if (isHardcodedSuperAdminSession()) return true;
+      return Boolean(state.isLoggedIn && currentGoogleUser && currentGoogleUser.email && resolveEffectiveUserRole());
     }
 
     function canCurrentUserAccessSettings() {
@@ -1314,12 +1322,21 @@
           role: effectiveRole
         };
       }
+      if (isHardcodedSuperAdminSession()) {
+        return {
+          name: 'Director (Super Admin)',
+          email: SUPER_ADMIN_EMAIL,
+          photoURL: '',
+          designation: 'Conference Director',
+          role: 'Super Admin'
+        };
+      }
       return {
-        name: 'Director (Super Admin)',
-        email: SUPER_ADMIN_EMAIL,
+        name: '',
+        email: '',
         photoURL: '',
-        designation: 'Conference Director',
-        role: resolveEffectiveUserRole() || 'Super Admin'
+        designation: '',
+        role: ''
       };
     }
 
@@ -1590,23 +1607,24 @@
         }
       }
 
-      if (!state.isLoggedIn) {
+      if (!state.isLoggedIn || (!currentGoogleUser && !isHardcodedSuperAdminSession())) {
         if (signInBtn) signInBtn.classList.remove('hidden');
         if (gearContainer) gearContainer.classList.add('hidden');
         allViews.forEach(v => document.getElementById(`view-${v}`)?.classList.add('hidden'));
         if (gateEl) {
           gateEl.classList.remove('hidden');
-          if (gateTitleEl) gateTitleEl.textContent = 'Signed Out of NIWAS Conference Portal';
-          if (gateMsgEl) gateMsgEl.textContent = 'Sign in with your Google Mail account to access your assigned conference workspace, or sign back in as the hardcoded Super Admin.';
+          if (gateTitleEl) gateTitleEl.textContent = 'Sign In to NIWAS Conference Portal';
+          if (gateMsgEl) gateMsgEl.textContent = 'Sign in with your authorized Google Mail account to access the portal. Access is restricted exclusively to pre-authorized conference personnel (System Admin, Conference Admin, Editorial Member, Scrutinizer, or Reviewer).';
           if (gateActionsEl) {
             gateActionsEl.innerHTML = `
-              <button type="button" onclick="signInWithGoogleAccount()" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs sm:text-sm font-semibold shadow-sm transition flex items-center justify-center gap-2">
+              <button type="button" onclick="signInWithGoogleAccount()" class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs sm:text-sm font-semibold shadow-sm transition flex items-center justify-center gap-2">
                 <i class="fa-brands fa-google"></i>
                 <span>Sign in with Google</span>
               </button>
+              ${isDesignPreviewEnvironment() ? `
               <button type="button" onclick="resumeSuperAdminSession()" class="w-full sm:w-auto px-4 py-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs sm:text-sm font-semibold transition">
-                Sign in as Super Admin
-              </button>
+                Resume Super Admin (Preview)
+              </button>` : ''}
             `;
           }
         }
