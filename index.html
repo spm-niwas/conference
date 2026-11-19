@@ -93,6 +93,12 @@
                   <span>System Admin</span>
                 </span>
               </button>
+              <button data-tab="email-templates" onclick="switchTab('email-templates')" class="nav-tab w-full flex items-center justify-between px-3.5 py-2 rounded-xl text-xs font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-all">
+                <span class="flex items-center gap-2.5">
+                  <i class="fa-solid fa-envelope-open-text w-4 text-center"></i>
+                  <span>Email Templates</span>
+                </span>
+              </button>
             </div>
           </div>
         </nav>
@@ -500,6 +506,112 @@
             <div id="system-admins-list-container" class="p-4 sm:p-6"></div>
           </div>
         </div>
+
+        <!-- VIEW 5D: EMAIL TEMPLATES (`email-templates` — Super Admin & System Admin Only) -->
+        <section id="view-email-templates" class="hidden">
+          <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden grid grid-cols-1 lg:grid-cols-12 min-h-[560px]">
+            <!-- Left Pane: Template List & Placeholders -->
+            <div class="lg:col-span-4 border-b lg:border-b-0 lg:border-r border-slate-200 bg-slate-50/70 p-4 sm:p-5 flex flex-col justify-between gap-4">
+              <div class="space-y-3">
+                <div class="flex items-center justify-between gap-2">
+                  <h2 class="text-xs font-extrabold uppercase tracking-wider text-slate-500">Templates</h2>
+                  <button type="button" onclick="createNewEmailTemplate()" class="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold transition-colors inline-flex items-center gap-1.5 shadow-2xs">
+                    <i class="fa-solid fa-plus text-[10px]"></i>
+                    <span>New Template</span>
+                  </button>
+                </div>
+                <div id="email-templates-list" class="space-y-2"></div>
+              </div>
+
+              <div class="bg-white border border-slate-200/80 rounded-xl p-3 text-[11px] text-slate-500 space-y-1.5">
+                <div class="font-bold text-slate-700">Available Placeholders (Click to Insert)</div>
+                <div class="flex flex-wrap gap-1">
+                  <button type="button" onclick="insertEmailTemplatePlaceholder('{{name}}')" class="px-1.5 py-0.5 rounded bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-mono font-semibold transition">{{name}}</button>
+                  <button type="button" onclick="insertEmailTemplatePlaceholder('{{email}}')" class="px-1.5 py-0.5 rounded bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-mono font-semibold transition">{{email}}</button>
+                  <button type="button" onclick="insertEmailTemplatePlaceholder('{{role}}')" class="px-1.5 py-0.5 rounded bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-mono font-semibold transition">{{role}}</button>
+                  <button type="button" onclick="insertEmailTemplatePlaceholder('{{designation}}')" class="px-1.5 py-0.5 rounded bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-mono font-semibold transition">{{designation}}</button>
+                  <button type="button" onclick="insertEmailTemplatePlaceholder('{{conferenceName}}')" class="px-1.5 py-0.5 rounded bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-mono font-semibold transition">{{conferenceName}}</button>
+                  <button type="button" onclick="insertEmailTemplatePlaceholder('{{conferenceDates}}')" class="px-1.5 py-0.5 rounded bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-mono font-semibold transition">{{conferenceDates}}</button>
+                  <button type="button" onclick="insertEmailTemplatePlaceholder('{{themes}}')" class="px-1.5 py-0.5 rounded bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-mono font-semibold transition">{{themes}}</button>
+                  <button type="button" onclick="insertEmailTemplatePlaceholder('{{addedBy}}')" class="px-1.5 py-0.5 rounded bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-mono font-semibold transition">{{addedBy}}</button>
+                  <button type="button" onclick="insertEmailTemplatePlaceholder('{{loginUrl}}')" class="px-1.5 py-0.5 rounded bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-mono font-semibold transition">{{loginUrl}}</button>
+                  <button type="button" onclick="insertEmailTemplatePlaceholder('{{title}}')" class="px-1.5 py-0.5 rounded bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-mono font-semibold transition">{{title}}</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right Pane: Live Template Editor & Visual Inbox Preview -->
+            <div class="lg:col-span-8 p-5 sm:p-6 flex flex-col justify-between gap-4">
+              <div class="space-y-4">
+                <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                  <div>
+                    <div class="flex items-center gap-2">
+                      <h3 class="text-base font-extrabold text-slate-900">Edit Template</h3>
+                      <span id="template-trigger-badge" class="hidden text-[11px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200"></span>
+                    </div>
+                    <p id="template-editor-status" class="text-xs text-slate-400 mt-0.5">All changes saved</p>
+                  </div>
+                  <div class="flex flex-wrap items-center gap-2">
+                    <!-- Mode Switcher: Edit vs. Visual Preview -->
+                    <div class="inline-flex rounded-xl bg-slate-100 p-1 border border-slate-200/80">
+                      <button type="button" id="btn-template-mode-edit" onclick="switchEmailTemplateEditorMode('edit')" class="px-2.5 py-1 rounded-lg bg-white text-slate-900 shadow-2xs text-xs font-bold transition">
+                        Edit
+                      </button>
+                      <button type="button" id="btn-template-mode-preview" onclick="switchEmailTemplateEditorMode('preview')" class="px-2.5 py-1 rounded-lg text-slate-600 hover:text-slate-900 text-xs font-semibold transition">
+                        Visual Preview
+                      </button>
+                    </div>
+                    <button type="button" onclick="sendTestSelectedEmailTemplate()" title="Send a sample test email to your signed-in address" class="px-3 py-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold transition inline-flex items-center gap-1.5">
+                      <i class="fa-solid fa-paper-plane text-[11px] text-indigo-600"></i>
+                      <span>Send Test</span>
+                    </button>
+                    <button type="button" id="btn-delete-template" onclick="deleteSelectedEmailTemplate()" class="hidden px-3 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold transition-colors">
+                      Delete Template
+                    </button>
+                    <button type="button" onclick="saveSelectedEmailTemplate()" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold transition-colors">
+                      Save Template
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Edit Fields Container -->
+                <div id="email-template-edit-pane" class="space-y-4">
+                  <div>
+                    <label for="template-editor-name" class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Template Name</label>
+                    <input type="text" id="template-editor-name" oninput="handleTemplateFieldInput()" placeholder="Template name..." class="w-full px-3.5 py-2.5 text-sm font-semibold bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                  </div>
+
+                  <div>
+                    <label for="template-editor-headline" class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Email Banner Headline</label>
+                    <input type="text" id="template-editor-headline" oninput="handleTemplateFieldInput()" placeholder="Header banner title inside the HTML email card..." class="w-full px-3.5 py-2.5 text-sm font-semibold bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                  </div>
+
+                  <div>
+                    <label for="template-editor-subject" class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Email Subject</label>
+                    <input type="text" id="template-editor-subject" oninput="handleTemplateFieldInput()" placeholder="Subject line..." class="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                  </div>
+
+                  <div>
+                    <label for="template-editor-body" class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Template Text</label>
+                    <textarea id="template-editor-body" rows="11" oninput="handleTemplateFieldInput()" placeholder="Write email template body..." class="w-full px-3.5 py-3 text-xs sm:text-sm font-mono leading-relaxed bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+                  </div>
+                </div>
+
+                <!-- Live Visual Preview Container -->
+                <div id="email-template-preview-pane" class="hidden space-y-3">
+                  <div class="rounded-xl bg-slate-50 border border-slate-200 px-4 py-2.5 flex flex-wrap items-center justify-between gap-2 text-xs">
+                    <div class="min-w-0">
+                      <span class="font-bold text-slate-500 uppercase tracking-wider text-[10px] block">Rendered Subject Line</span>
+                      <span id="template-preview-subject" class="font-bold text-slate-900"></span>
+                    </div>
+                    <span class="text-[11px] text-slate-500 bg-white px-2.5 py-1 rounded-lg border border-slate-200">Sample Data Preview</span>
+                  </div>
+                  <div id="template-preview-html-box" class="rounded-2xl border border-slate-200 bg-slate-100/70 p-4 sm:p-6 overflow-x-auto"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
 
         <!-- VIEW 6: CONFERENCE DETAILS (`conference-details`) -->
         <div id="view-conference-details" class="space-y-6 hidden">
@@ -1142,14 +1254,107 @@
       activeRole: isDesignPreviewEnvironment() ? 'Super Admin' : '',
       users: [],
       systemAdmins: [],
-      conferences: []
+      conferences: [],
+      emailTemplates: [],
+      selectedTemplateId: 'tpl-sysadmin-welcome'
     };
+
+    const INITIAL_EMAIL_TEMPLATES = [
+      {
+        id: 'tpl-sysadmin-welcome',
+        name: 'System Admin Welcome Email',
+        triggerLabel: 'Trigger: Add System Admin',
+        headline: 'Welcome to the NIWAS Conference Management System',
+        subject: 'Welcome to NIWAS Conference Manager — System Admin Access',
+        body: 'Dear {{name}},\n\nYou have been onboarded as a {{role}} with system-wide governance privileges across all conferences in the NIWAS Conference Manager portal.\n\nAuthorized Email: {{email}}\nOnboarded By: {{addedBy}}\n\nKey Responsibilities:\n- Create and oversee academic conferences across the organization.\n- Assign Conference Admins and System Admins across the platform.\n- Monitor overall conference readiness, governance, and closure status.\n\nTo get started, sign in using your authorized Google account at:\n{{loginUrl}}\n\nRegards,\nSPM NIWAS',
+        isSystem: true
+      },
+      {
+        id: 'tpl-confadmin-welcome',
+        name: 'Conference Admin Welcome Email',
+        triggerLabel: 'Trigger: Assign Conference Admin',
+        headline: 'Welcome as Conference Admin — {{conferenceName}}',
+        subject: 'Welcome to {{conferenceName}} — Conference Admin Access (NIWAS Conference Portal)',
+        body: 'Dear {{name}},\n\nYou have been appointed as the {{role}} for "{{conferenceName}}". Administrative control for managing this conference has been handed over to your account.\n\nConference: {{conferenceName}}\nSchedule Dates: {{conferenceDates}}\nAuthorized Email: {{email}}\nOnboarded By: {{addedBy}}\n\nKey Responsibilities:\n- Configure conference details, detailed call for papers, schedules, supplementary files, and themes.\n- Link the submission Google Sheet and oversee incoming submissions.\n- Add and manage Editorial Members, Scrutinizers, and Reviewers, and map reviewers to conference themes.\n\nSign in using your authorized Google account at:\n{{loginUrl}}\n\nRegards,\nSPM NIWAS',
+        isSystem: true
+      },
+      {
+        id: 'tpl-editorial-welcome',
+        name: 'Editorial & Scrutinizer Welcome',
+        triggerLabel: 'Trigger: Add Editorial Member / Scrutinizer',
+        headline: 'Welcome to the Editorial & Scrutiny Team — {{conferenceName}}',
+        subject: 'Welcome to {{conferenceName}} — {{role}} Access (NIWAS Conference Portal)',
+        body: 'Dear {{name}},\n\nYou have been added as {{role}} ({{designation}}) for "{{conferenceName}}" on the NIWAS Conference Manager portal.\n\nConference: {{conferenceName}}\nSchedule Dates: {{conferenceDates}}\nAuthorized Email: {{email}}\nOnboarded By: {{addedBy}}\n\nKey Responsibilities:\n- Perform desk screening and coordinate editorial peer-review distribution across conference tracks.\n- Monitor submission quality and review progress.\n\nSign in using your authorized Google account at:\n{{loginUrl}}\n\nRegards,\nSPM NIWAS',
+        isSystem: true
+      },
+      {
+        id: 'tpl-reviewer-welcome',
+        name: 'Peer Reviewer Welcome Email',
+        triggerLabel: 'Trigger: Add Reviewer',
+        headline: 'Welcome to the Peer Review Panel — {{conferenceName}}',
+        subject: 'Welcome to {{conferenceName}} — Reviewer Access (NIWAS Conference Portal)',
+        body: 'Dear {{name}},\n\nYou have been added as a Peer Reviewer ({{designation}}) for "{{conferenceName}}" on the NIWAS Conference Manager portal.\n\nConference: {{conferenceName}}\nSchedule Dates: {{conferenceDates}}\nAssigned Themes: {{themes}}\nAuthorized Email: {{email}}\nOnboarded By: {{addedBy}}\n\nKey Responsibilities:\n- Access manuscripts assigned to you under your designated conference themes.\n- Evaluate submissions and submit structured peer review feedback.\n\nSign in using your authorized Google account at:\n{{loginUrl}}\n\nRegards,\nSPM NIWAS',
+        isSystem: true
+      },
+      {
+        id: 'tpl-custom-notification',
+        name: 'General Conference Notification',
+        triggerLabel: 'Manual / Custom Template',
+        headline: '{{title}}',
+        subject: 'Notification: {{title}} — {{conferenceName}}',
+        body: 'Dear {{name}},\n\nPlease review the latest update regarding "{{title}}" for {{conferenceName}}.\n\nPortal Link: {{loginUrl}}\n\nRegards,\nSPM NIWAS',
+        isSystem: false
+      }
+    ];
+
+    function sanitizeTemplateBrandText(str) {
+      return String(str || '')
+        .replace(/SPM-NIWAS/g, 'SPM NIWAS')
+        .replace(/\bCoordination Desk\b/g, '')
+        .replace(/SPM NIWAS\s+/g, 'SPM NIWAS')
+        .replace(/[ \t]+\n/g, '\n');
+    }
+
+    function mergeWithInitialEmailTemplates(savedList) {
+      const existing = Array.isArray(savedList) ? savedList : [];
+      const byId = new Map(existing.map(t => [t.id, t]));
+      const merged = INITIAL_EMAIL_TEMPLATES.map(def => {
+        if (byId.has(def.id)) {
+          const saved = byId.get(def.id);
+          byId.delete(def.id);
+          return {
+            ...def,
+            ...saved,
+            name: sanitizeTemplateBrandText(saved.name || def.name),
+            headline: sanitizeTemplateBrandText(saved.headline || def.headline),
+            subject: sanitizeTemplateBrandText(saved.subject || def.subject),
+            body: sanitizeTemplateBrandText(saved.body || def.body),
+            isSystem: true
+          };
+        }
+        return JSON.parse(JSON.stringify(def));
+      });
+      byId.forEach(custom => merged.push({
+        ...custom,
+        name: sanitizeTemplateBrandText(custom.name),
+        headline: sanitizeTemplateBrandText(custom.headline),
+        subject: sanitizeTemplateBrandText(custom.subject),
+        body: sanitizeTemplateBrandText(custom.body)
+      }));
+      return merged;
+    }
 
     function loadState() {
       const inDesign = isDesignPreviewEnvironment();
       try {
         const raw = safeStorage.getItem(STORAGE_KEY);
-        if (!raw) return JSON.parse(JSON.stringify(DEFAULT_STATE));
+        if (!raw) {
+          return {
+            ...JSON.parse(JSON.stringify(DEFAULT_STATE)),
+            emailTemplates: mergeWithInitialEmailTemplates([]),
+            selectedTemplateId: INITIAL_EMAIL_TEMPLATES[0].id
+          };
+        }
         const parsed = JSON.parse(raw);
         const systemAdmins = Array.isArray(parsed.systemAdmins) ? parsed.systemAdmins : [];
         const conferences = Array.isArray(parsed.conferences) ? parsed.conferences.map(c => ({
@@ -1158,16 +1363,23 @@
             ? c.members.map(m => ({ ...m, role: m.role === 'Admin' ? 'Conference Admin' : m.role }))
             : []
         })) : [];
+        const emailTemplates = mergeWithInitialEmailTemplates(parsed.emailTemplates);
         const designLoggedIn = inDesign ? (parsed.isLoggedIn !== false) : false;
         return {
           isLoggedIn: designLoggedIn,
           activeRole: designLoggedIn ? 'Super Admin' : '',
           users: [],
           systemAdmins,
-          conferences
+          conferences,
+          emailTemplates,
+          selectedTemplateId: parsed.selectedTemplateId || emailTemplates[0]?.id || 'tpl-sysadmin-welcome'
         };
       } catch {
-        return JSON.parse(JSON.stringify(DEFAULT_STATE));
+        return {
+          ...JSON.parse(JSON.stringify(DEFAULT_STATE)),
+          emailTemplates: mergeWithInitialEmailTemplates([]),
+          selectedTemplateId: INITIAL_EMAIL_TEMPLATES[0].id
+        };
       }
     }
 
@@ -1407,9 +1619,22 @@
         await setDoc(doc(fbDb, 'artifacts', fbAppId, 'public', 'data', 'settings', 'systemAdmins'), {
           list: state.systemAdmins || [],
           updatedAt: Date.now()
-        });
+        }, { merge: true });
       } catch (err) {
         console.warn('Firestore systemAdmins sync warning:', err);
+      }
+    }
+
+    async function syncEmailTemplatesToCloud() {
+      saveState();
+      if (!fbDb) return;
+      try {
+        await setDoc(doc(fbDb, 'artifacts', fbAppId, 'public', 'data', 'settings', 'emailTemplates'), {
+          list: state.emailTemplates || [],
+          updatedAt: Date.now()
+        }, { merge: true });
+      } catch (err) {
+        console.warn('Firestore emailTemplates sync warning:', err);
       }
     }
 
@@ -1488,6 +1713,23 @@
             },
             (err) => {
               console.warn('Firestore systemAdmins listener error:', err);
+            }
+          );
+
+          onSnapshot(
+            doc(fbDb, 'artifacts', fbAppId, 'public', 'data', 'settings', 'emailTemplates'),
+            (docSnap) => {
+              if (docSnap.exists()) {
+                const data = docSnap.data();
+                state.emailTemplates = mergeWithInitialEmailTemplates(data.list);
+                saveState();
+                if (currentTab === 'email-templates') {
+                  renderEmailTemplatesView();
+                }
+              }
+            },
+            (err) => {
+              console.warn('Firestore emailTemplates listener error:', err);
             }
           );
         };
@@ -1587,8 +1829,9 @@
       const gearContainer = document.getElementById('account-gear-container');
       const settingsSection = document.getElementById('sidebar-settings-section');
       const sysAdminTabBtn = document.querySelector('[data-tab="system-admin"]');
+      const emailTemplatesTabBtn = document.querySelector('[data-tab="email-templates"]');
 
-      const allViews = ['overview', 'papers', 'desk', 'reviews', 'conf-workspace', 'conferences', 'users-permissions', 'system-admin', 'conference-details', 'edit-conference'];
+      const allViews = ['overview', 'papers', 'desk', 'reviews', 'conf-workspace', 'conferences', 'users-permissions', 'system-admin', 'email-templates', 'conference-details', 'edit-conference'];
       const authorized = hasAuthorizedPortalAccess();
 
       if (settingsSection) {
@@ -1604,6 +1847,14 @@
           sysAdminTabBtn.classList.remove('hidden');
         } else {
           sysAdminTabBtn.classList.add('hidden');
+        }
+      }
+
+      if (emailTemplatesTabBtn) {
+        if (authorized && isHardcodedSuperAdminSession()) {
+          emailTemplatesTabBtn.classList.remove('hidden');
+        } else {
+          emailTemplatesTabBtn.classList.add('hidden');
         }
       }
 
@@ -1773,7 +2024,9 @@
         activeRole: state.activeRole,
         users: [],
         systemAdmins: state.systemAdmins || [],
-        conferences: state.conferences || []
+        conferences: state.conferences || [],
+        emailTemplates: state.emailTemplates || [],
+        selectedTemplateId: state.selectedTemplateId || ''
       }));
     }
 
@@ -1789,119 +2042,155 @@
     function showToast(message, type = 'info') {
       const container = document.getElementById('toast-container');
       if (!container) return;
+
       const styles = {
-        success: 'bg-slate-900 text-white border-slate-700',
-        warning: 'bg-amber-900 text-white border-amber-700',
-        error: 'bg-rose-900 text-white border-rose-700',
-        info: 'bg-slate-800 text-white border-slate-700'
+        success: 'bg-emerald-950 text-emerald-50 border-emerald-800',
+        error: 'bg-rose-950 text-rose-50 border-rose-800',
+        warning: 'bg-amber-950 text-amber-50 border-amber-800',
+        info: 'bg-slate-900 text-white border-slate-700'
       };
       const icons = {
-        success: 'fa-circle-check text-emerald-400',
-        warning: 'fa-triangle-exclamation text-amber-400',
-        error: 'fa-circle-xmark text-rose-400',
-        info: 'fa-circle-info text-indigo-400'
+        success: 'fa-solid fa-circle-check text-emerald-400',
+        error: 'fa-solid fa-circle-exclamation text-rose-400',
+        warning: 'fa-solid fa-triangle-exclamation text-amber-400',
+        info: 'fa-solid fa-circle-info text-indigo-400'
       };
+
       const toast = document.createElement('div');
-      toast.className = `pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl border shadow-lg text-xs font-medium transition-all duration-300 ${styles[type] || styles.info}`;
-      toast.innerHTML = `<i class="fa-solid ${icons[type] || icons.info} text-sm"></i><span class="flex-1">${escapeHtml(message)}</span>`;
+      toast.className = `pointer-events-auto rounded-xl border px-4 py-3 shadow-xl text-xs sm:text-sm font-medium flex items-start gap-2.5 transition-all duration-300 ${styles[type] || styles.info}`;
+      toast.innerHTML = `
+        <i class="${icons[type] || icons.info} mt-0.5 shrink-0"></i>
+        <span class="flex-1 leading-snug">${escapeHtml(message)}</span>
+      `;
       container.appendChild(toast);
+
       setTimeout(() => {
         toast.style.opacity = '0';
-        setTimeout(() => toast.remove(), 250);
-      }, 3200);
+        toast.style.transform = 'translateY(6px)';
+        setTimeout(() => toast.remove(), 300);
+      }, 4200);
     }
 
-    async function sendPortalEmail({ to, subject, htmlBody, textBody = '' }) {
+    async function sendPortalEmail({ to, subject, htmlBody, textBody }) {
       const recipient = String(to || '').trim();
-      if (!recipient || !subject || !htmlBody) {
-        return { ok: false, error: 'Missing recipient, subject, or email body.' };
-      }
+      if (!recipient) return { ok: false, error: 'Missing recipient email address.' };
+
       const payload = JSON.stringify({
         secret: GAS_EMAIL_SECRET_KEY,
         to: recipient,
-        subject: String(subject).trim(),
-        htmlBody: String(htmlBody).trim(),
-        textBody: String(textBody || `Please open the portal: ${PORTAL_LIVE_URL}`).trim()
+        subject: String(subject || 'NIWAS Conference Portal Notification'),
+        htmlBody: String(htmlBody || ''),
+        textBody: String(textBody || '')
       });
 
-      let lastError = 'Network error sending email.';
-      for (let attempt = 0; attempt < 3; attempt++) {
+      const maxAttempts = 2;
+      for (let attempt = 1; attempt <= maxAttempts; attempt++) {
         try {
-          const res = await fetch(GAS_EMAIL_WEB_APP_URL, {
+          const response = await fetch(GAS_EMAIL_WEB_APP_URL, {
             method: 'POST',
-            headers: {
-              'Content-Type': 'text/plain;charset=utf-8'
-            },
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
             body: payload
           });
-          const data = await res.json();
-          if (data && data.ok) {
-            return data;
+          const rawText = await response.text();
+          let parsed = null;
+          try { parsed = JSON.parse(rawText); } catch {}
+          if (parsed && (parsed.ok === true || parsed.status === 'success')) {
+            return { ok: true };
           }
-          lastError = (data && data.error) ? data.error : 'Email gateway rejected the request.';
+          if (response.ok && !parsed) {
+            return { ok: true };
+          }
+          if (attempt < maxAttempts) {
+            await new Promise(r => setTimeout(r, 900));
+            continue;
+          }
+          return { ok: false, error: (parsed && parsed.error) || `HTTP ${response.status}` };
         } catch (err) {
-          lastError = err && err.message ? err.message : 'Network error sending email.';
-        }
-        if (attempt < 2) {
-          await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, attempt)));
+          if (attempt < maxAttempts) {
+            await new Promise(r => setTimeout(r, 900));
+            continue;
+          }
+          return { ok: false, error: err && err.message ? err.message : 'Network error' };
         }
       }
-      console.warn('Email gateway request warning:', lastError);
-      return { ok: false, error: lastError };
+      return { ok: false, error: 'Unable to reach email gateway.' };
     }
 
-    function getRoleWelcomeSummary(role, conferenceName = '') {
+    function getTemplateIdForRole(role) {
       const normalized = normalizeRoleName(role);
-      if (normalized === 'System Admin') {
-        return {
-          headline: 'Welcome to the NIWAS Conference Management System',
-          intro: 'You have been onboarded as a System Admin with system-wide governance privileges across all conferences in the NIWAS Conference Manager portal.',
-          responsibilities: [
-            'Create and oversee academic conferences across the organization.',
-            'Assign Conference Admins and System Admins across the platform.',
-            'Monitor overall conference readiness, governance, and closure status.'
-          ]
-        };
-      }
-      if (normalized === 'Conference Admin') {
-        return {
-          headline: `Welcome as Conference Admin — ${conferenceName}`,
-          intro: `You have been appointed as the Conference Admin for "${conferenceName}". Administrative control for managing this conference has been handed over to your account.`,
-          responsibilities: [
-            'Configure conference details, detailed call for papers, schedules, supplementary files, and themes.',
-            'Link the submission Google Sheet and oversee incoming submissions.',
-            'Add and manage Editorial Members, Scrutinizers, and Reviewers, and map reviewers to conference themes.'
-          ]
-        };
-      }
-      if (normalized === 'Editorial Member') {
-        return {
-          headline: `Welcome to the Editorial Board — ${conferenceName}`,
-          intro: `You have been added as an Editorial Member for "${conferenceName}" on the NIWAS Conference Manager portal.`,
-          responsibilities: [
-            'Review screened submissions and coordinate editorial distribution.',
-            'Oversee peer review progress across assigned conference tracks.'
-          ]
-        };
-      }
-      if (normalized === 'Scrutinizer') {
-        return {
-          headline: `Welcome to the Scrutiny Desk — ${conferenceName}`,
-          intro: `You have been added as a Scrutinizer for "${conferenceName}" on the NIWAS Conference Manager portal.`,
-          responsibilities: [
-            'Perform initial desk screening of submitted manuscripts for scope, completeness, and formatting.',
-            'Prepare verified submissions for editorial review and reviewer assignment.'
-          ]
-        };
-      }
-      return {
-        headline: `Welcome to the Peer Review Panel — ${conferenceName}`,
-        intro: `You have been added as a Peer Reviewer for "${conferenceName}" on the NIWAS Conference Manager portal.`,
-        responsibilities: [
-          'Access manuscripts assigned to you under your designated conference themes.',
-          'Evaluate submissions and submit structured peer review feedback.'
-        ]
-      };
+      if (normalized === 'System Admin') return 'tpl-sysadmin-welcome';
+      if (normalized === 'Conference Admin') return 'tpl-confadmin-welcome';
+      if (normalized === 'Reviewer') return 'tpl-reviewer-welcome';
+      return 'tpl-editorial-welcome';
+    }
+
+    function applyTemplateTokens(text, context = {}) {
+      const themesStr = Array.isArray(context.themes)
+        ? (context.themes.length > 0 ? context.themes.join(', ') : 'To be mapped by Conference Admin')
+        : String(context.themes || 'To be mapped by Conference Admin');
+
+      return String(text || '')
+        .replace(/\{\{name\}\}/g, context.name || '')
+        .replace(/\{\{email\}\}/g, context.email || '')
+        .replace(/\{\{role\}\}/g, context.role || '')
+        .replace(/\{\{designation\}\}/g, context.designation || context.role || '')
+        .replace(/\{\{conferenceName\}\}/g, context.conferenceName || '')
+        .replace(/\{\{conferenceDates\}\}/g, context.conferenceDates || 'Dates TBD')
+        .replace(/\{\{themes\}\}/g, themesStr)
+        .replace(/\{\{addedBy\}\}/g, context.addedBy || 'NIWAS Conference Portal Administrator')
+        .replace(/\{\{loginUrl\}\}/g, context.loginUrl || PORTAL_LIVE_URL)
+        .replace(/\{\{title\}\}/g, context.title || context.conferenceName || '');
+    }
+
+    function buildBrandedEmailHtml({ headline, bodyText, context = {} }) {
+      const paragraphsHtml = String(bodyText || '')
+        .split(/\n{2,}/)
+        .map(block => block.trim())
+        .filter(Boolean)
+        .map(block => {
+          const lines = block.split('\n').map(l => l.trim()).filter(Boolean);
+          const isBulletList = lines.length > 1 && lines.every(l => l.startsWith('- '));
+          if (isBulletList) {
+            return `<ul style="margin: 12px 0; padding-left: 20px; color: #334155;">${lines.map(l => `<li style="margin-bottom: 4px;">${escapeHtml(l.slice(2))}</li>`).join('')}</ul>`;
+          }
+          return `<p style="margin: 0 0 12px; color: #1e293b;">${lines.map(l => escapeHtml(l)).join('<br>')}</p>`;
+        })
+        .join('');
+
+      const loginUrl = context.loginUrl || PORTAL_LIVE_URL;
+      const recipientEmail = context.email || '';
+
+      return `
+        <div style="font-family: Inter, Arial, sans-serif; max-width: 620px; margin: 0 auto; color: #1e293b; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; background-color: #ffffff;">
+          <div style="background-color: #0f172a; color: #ffffff; padding: 22px 24px;">
+            <p style="margin: 0 0 4px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: #94a3b8; font-weight: 700;">SPM NIWAS &middot; Official Communication</p>
+            <h2 style="margin: 0; font-size: 18px; font-weight: 700; line-height: 1.35;">${escapeHtml(headline || 'NIWAS Conference Portal')}</h2>
+            <p style="margin: 4px 0 0; font-size: 12px; color: #cbd5e1;">Full Conference Manager &middot; Academic Paper &amp; Peer Review Portal</p>
+          </div>
+          <div style="padding: 24px; background-color: #ffffff; font-size: 14px; line-height: 1.65;">
+            ${paragraphsHtml}
+            <div style="margin: 20px 0 14px; padding-top: 14px; border-top: 1px solid #e2e8f0;">
+              <a href="${escapeHtml(loginUrl)}" style="display: inline-block; background-color: #0f172a; color: #ffffff; text-decoration: none; padding: 11px 22px; border-radius: 8px; font-weight: 600; font-size: 13px;">
+                Open NIWAS Conference Portal
+              </a>
+            </div>
+            <p style="font-size: 12px; color: #64748b; margin: 0;">
+              ${recipientEmail ? `Authorized Google Account: <strong>${escapeHtml(recipientEmail)}</strong><br>` : ''}
+              Portal Link: <a href="${escapeHtml(loginUrl)}" style="color: #4f46e5;">${escapeHtml(loginUrl)}</a>
+            </p>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderEmailTemplate(templateId, context = {}) {
+      const templates = Array.isArray(state.emailTemplates) ? state.emailTemplates : INITIAL_EMAIL_TEMPLATES;
+      const tpl = templates.find(t => t.id === templateId) || templates[0];
+      const subject = applyTemplateTokens(tpl.subject, context);
+      const textBody = applyTemplateTokens(tpl.body, context);
+      const headline = applyTemplateTokens(tpl.headline || tpl.subject, context);
+      const htmlBody = buildBrandedEmailHtml({ headline, bodyText: textBody, context });
+      return { template: tpl, subject, textBody, htmlBody };
     }
 
     async function sendUserAssignmentEmail({
@@ -1920,126 +2209,268 @@
         ? `${session.name} (${session.email})`
         : 'NIWAS Conference Portal Administrator';
 
-      const isSystemAdmin = normalizedRole === 'System Admin';
-      const welcomeMeta = getRoleWelcomeSummary(normalizedRole, conferenceName);
-      const subject = isSystemAdmin
-        ? `Welcome to NIWAS Conference Manager — System Admin Access`
-        : `Welcome to ${conferenceName} — ${normalizedRole} Access (NIWAS Conference Portal)`;
-
-      const themesList = Array.isArray(themes) && themes.length > 0 ? themes : [];
-      const themesHtmlRow = (!isSystemAdmin && normalizedRole === 'Reviewer')
-        ? `
-          <tr>
-            <td style="padding: 8px 12px; border-bottom: 1px solid #e2e8f0; color: #64748b; font-weight: 600; width: 165px;">Assigned Themes</td>
-            <td style="padding: 8px 12px; border-bottom: 1px solid #e2e8f0; color: #0f172a;">${
-              themesList.length > 0
-                ? themesList.map(t => escapeHtml(t)).join(', ')
-                : 'To be mapped by Conference Admin'
-            }</td>
-          </tr>
-        `
-        : '';
-
-      const responsibilitiesHtml = welcomeMeta.responsibilities
-        .map(item => `<li style="margin-bottom: 4px;">${escapeHtml(item)}</li>`)
-        .join('');
-
-      const htmlBody = `
-        <div style="font-family: Inter, Arial, sans-serif; max-width: 620px; margin: 0 auto; color: #1e293b; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;">
-          <div style="background-color: #0f172a; color: #ffffff; padding: 22px 24px;">
-            <p style="margin: 0 0 4px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: #94a3b8; font-weight: 700;">Official Welcome &amp; Onboarding</p>
-            <h2 style="margin: 0; font-size: 18px; font-weight: 700;">${escapeHtml(welcomeMeta.headline)}</h2>
-            <p style="margin: 4px 0 0; font-size: 12px; color: #cbd5e1;">SPM NIWAS &middot; Academic Paper &amp; Peer Review Portal</p>
-          </div>
-          <div style="padding: 24px; background-color: #ffffff; font-size: 14px; line-height: 1.6;">
-            <p style="margin-top: 0;">Dear <strong>${escapeHtml(name)}</strong>,</p>
-            <p>${escapeHtml(welcomeMeta.intro)}</p>
-
-            <table style="width: 100%; border-collapse: collapse; margin: 18px 0; font-size: 13px; border: 1px solid #e2e8f0; border-radius: 8px;">
-              <tr>
-                <td style="padding: 8px 12px; border-bottom: 1px solid #e2e8f0; color: #64748b; font-weight: 600; width: 165px;">Assigned Role</td>
-                <td style="padding: 8px 12px; border-bottom: 1px solid #e2e8f0; color: #0f172a; font-weight: 700;">${escapeHtml(normalizedRole)}</td>
-              </tr>
-              ${designation ? `
-              <tr>
-                <td style="padding: 8px 12px; border-bottom: 1px solid #e2e8f0; color: #64748b; font-weight: 600;">Designation</td>
-                <td style="padding: 8px 12px; border-bottom: 1px solid #e2e8f0; color: #0f172a;">${escapeHtml(designation)}</td>
-              </tr>` : ''}
-              ${!isSystemAdmin && conferenceName ? `
-              <tr>
-                <td style="padding: 8px 12px; border-bottom: 1px solid #e2e8f0; color: #64748b; font-weight: 600;">Conference</td>
-                <td style="padding: 8px 12px; border-bottom: 1px solid #e2e8f0; color: #0f172a; font-weight: 600;">${escapeHtml(conferenceName)}</td>
-              </tr>` : ''}
-              ${!isSystemAdmin && conferenceDescription ? `
-              <tr>
-                <td style="padding: 8px 12px; border-bottom: 1px solid #e2e8f0; color: #64748b; font-weight: 600;">Overview</td>
-                <td style="padding: 8px 12px; border-bottom: 1px solid #e2e8f0; color: #0f172a;">${escapeHtml(conferenceDescription)}</td>
-              </tr>` : ''}
-              ${!isSystemAdmin && conferenceDates ? `
-              <tr>
-                <td style="padding: 8px 12px; border-bottom: 1px solid #e2e8f0; color: #64748b; font-weight: 600;">Schedule Dates</td>
-                <td style="padding: 8px 12px; border-bottom: 1px solid #e2e8f0; color: #0f172a;">${escapeHtml(conferenceDates)}</td>
-              </tr>` : ''}
-              ${themesHtmlRow}
-              <tr>
-                <td style="padding: 8px 12px; border-bottom: 1px solid #e2e8f0; color: #64748b; font-weight: 600;">Authorized Email</td>
-                <td style="padding: 8px 12px; border-bottom: 1px solid #e2e8f0; color: #0f172a; font-weight: 600;">${escapeHtml(email)}</td>
-              </tr>
-              <tr>
-                <td style="padding: 8px 12px; color: #64748b; font-weight: 600;">Onboarded By</td>
-                <td style="padding: 8px 12px; color: #0f172a;">${escapeHtml(addedByLabel)}</td>
-              </tr>
-            </table>
-
-            <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px 16px; margin: 16px 0;">
-              <p style="margin: 0 0 8px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #475569;">Your Key Responsibilities</p>
-              <ul style="margin: 0; padding-left: 18px; font-size: 13px; color: #334155;">
-                ${responsibilitiesHtml}
-              </ul>
-            </div>
-
-            <p style="margin: 20px 0 12px;">
-              To get started, click the button below and sign in using your authorized Google account (<strong>${escapeHtml(email)}</strong>):
-            </p>
-            <p style="margin: 16px 0 20px;">
-              <a href="${escapeHtml(PORTAL_LIVE_URL)}" style="display: inline-block; background-color: #0f172a; color: #ffffff; text-decoration: none; padding: 11px 22px; border-radius: 8px; font-weight: 600; font-size: 13px;">
-                Sign In to NIWAS Conference Portal
-              </a>
-            </p>
-            <p style="font-size: 12px; color: #64748b; margin-bottom: 0;">
-              Direct Portal Link: <a href="${escapeHtml(PORTAL_LIVE_URL)}" style="color: #4f46e5;">${escapeHtml(PORTAL_LIVE_URL)}</a>
-            </p>
-          </div>
-        </div>
-      `;
-
-      const textLines = [
-        `Dear ${name},`,
-        '',
-        welcomeMeta.headline,
-        welcomeMeta.intro,
-        '',
-        `Assigned Role: ${normalizedRole}`,
-        designation ? `Designation: ${designation}` : '',
-        !isSystemAdmin && conferenceName ? `Conference: ${conferenceName}` : '',
-        !isSystemAdmin && conferenceDescription ? `Overview: ${conferenceDescription}` : '',
-        !isSystemAdmin && conferenceDates ? `Schedule Dates: ${conferenceDates}` : '',
-        (!isSystemAdmin && normalizedRole === 'Reviewer' && themesList.length > 0) ? `Assigned Themes: ${themesList.join(', ')}` : '',
-        `Authorized Email: ${email}`,
-        `Onboarded By: ${addedByLabel}`,
-        '',
-        'Your Key Responsibilities:',
-        ...welcomeMeta.responsibilities.map(r => `- ${r}`),
-        '',
-        `Sign in with your Google account at: ${PORTAL_LIVE_URL}`
-      ].filter(Boolean);
+      const templateId = getTemplateIdForRole(normalizedRole);
+      const compiled = renderEmailTemplate(templateId, {
+        name,
+        email,
+        role: normalizedRole,
+        designation: designation || normalizedRole,
+        conferenceName,
+        conferenceDates,
+        conferenceDescription,
+        themes,
+        addedBy: addedByLabel,
+        loginUrl: PORTAL_LIVE_URL,
+        title: conferenceName || normalizedRole
+      });
 
       return sendPortalEmail({
         to: email,
-        subject,
-        htmlBody,
-        textBody: textLines.join('\n')
+        subject: compiled.subject,
+        htmlBody: compiled.htmlBody,
+        textBody: compiled.textBody
       });
+    }
+
+    // =========================================================================
+    // EMAIL TEMPLATES TWO-PANE EDITOR & VISUAL PREVIEW
+    // =========================================================================
+    let emailTemplateEditorMode = 'edit'; // 'edit' | 'preview'
+
+    function getSampleTemplateContext() {
+      const session = getActiveSessionInfo();
+      const firstConf = (state.conferences || [])[0];
+      const sFmt = firstConf ? formatDateDDMMYYYY(firstConf.startDate) : '15-12-2026';
+      const eFmt = firstConf ? formatDateDDMMYYYY(firstConf.endDate) : '17-12-2026';
+      return {
+        name: 'Dr. Ananya Sen',
+        email: session.email || 'ananya.sen@gmail.com',
+        role: 'Conference Admin',
+        designation: 'Associate Professor',
+        conferenceName: firstConf ? firstConf.name : 'NIWAS National Water & Sanitation Symposium 2026',
+        conferenceDates: sFmt === eFmt ? sFmt : `${sFmt} to ${eFmt}`,
+        themes: firstConf && Array.isArray(firstConf.themes) && firstConf.themes.length > 0
+          ? firstConf.themes.slice(0, 2)
+          : ['Urban Water Supply & Governance', 'Climate Resilience in WASH'],
+        addedBy: session.name ? `${session.name} (${session.email})` : 'Director (director@spmniwas.in)',
+        loginUrl: PORTAL_LIVE_URL,
+        title: firstConf ? firstConf.name : 'Submission & Review Update'
+      };
+    }
+
+    function renderEmailTemplatesView() {
+      const listEl = document.getElementById('email-templates-list');
+      if (!listEl) return;
+
+      if (!Array.isArray(state.emailTemplates) || state.emailTemplates.length === 0) {
+        state.emailTemplates = mergeWithInitialEmailTemplates([]);
+      }
+      if (!state.selectedTemplateId || !state.emailTemplates.some(t => t.id === state.selectedTemplateId)) {
+        state.selectedTemplateId = state.emailTemplates[0].id;
+      }
+
+      listEl.innerHTML = state.emailTemplates.map(tpl => {
+        const active = tpl.id === state.selectedTemplateId;
+        return `
+          <button type="button" onclick="selectEmailTemplate('${escapeHtml(tpl.id)}')" class="w-full text-left px-3.5 py-2.5 rounded-xl border text-xs transition-all space-y-0.5 ${active ? 'bg-indigo-600 text-white border-indigo-600 font-bold shadow-2xs' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100 font-semibold'}">
+            <div class="truncate">${escapeHtml(tpl.name)}</div>
+            ${tpl.triggerLabel ? `<div class="text-[10px] font-medium truncate ${active ? 'text-indigo-100' : 'text-slate-400'}">${escapeHtml(tpl.triggerLabel)}</div>` : ''}
+          </button>
+        `;
+      }).join('');
+
+      const selected = state.emailTemplates.find(t => t.id === state.selectedTemplateId);
+      if (selected) {
+        const nameInp = document.getElementById('template-editor-name');
+        const headlineInp = document.getElementById('template-editor-headline');
+        const subInp = document.getElementById('template-editor-subject');
+        const bodyInp = document.getElementById('template-editor-body');
+        const delBtn = document.getElementById('btn-delete-template');
+        const triggerBadge = document.getElementById('template-trigger-badge');
+
+        if (nameInp) nameInp.value = selected.name || '';
+        if (headlineInp) headlineInp.value = selected.headline || '';
+        if (subInp) subInp.value = selected.subject || '';
+        if (bodyInp) bodyInp.value = selected.body || '';
+        if (delBtn) delBtn.classList.toggle('hidden', Boolean(selected.isSystem));
+        if (triggerBadge) {
+          if (selected.triggerLabel) {
+            triggerBadge.textContent = selected.triggerLabel;
+            triggerBadge.classList.remove('hidden');
+          } else {
+            triggerBadge.classList.add('hidden');
+          }
+        }
+      }
+
+      switchEmailTemplateEditorMode(emailTemplateEditorMode);
+    }
+
+    function switchEmailTemplateEditorMode(mode) {
+      emailTemplateEditorMode = mode === 'preview' ? 'preview' : 'edit';
+      const editPane = document.getElementById('email-template-edit-pane');
+      const previewPane = document.getElementById('email-template-preview-pane');
+      const editBtn = document.getElementById('btn-template-mode-edit');
+      const previewBtn = document.getElementById('btn-template-mode-preview');
+
+      if (emailTemplateEditorMode === 'preview') {
+        editPane?.classList.add('hidden');
+        previewPane?.classList.remove('hidden');
+        if (editBtn) editBtn.className = 'px-2.5 py-1 rounded-lg text-slate-600 hover:text-slate-900 text-xs font-semibold transition';
+        if (previewBtn) previewBtn.className = 'px-2.5 py-1 rounded-lg bg-white text-slate-900 shadow-2xs text-xs font-bold transition';
+
+        const currentHeadline = document.getElementById('template-editor-headline')?.value || '';
+        const currentSubject = document.getElementById('template-editor-subject')?.value || '';
+        const currentBody = document.getElementById('template-editor-body')?.value || '';
+        const selected = (state.emailTemplates || []).find(t => t.id === state.selectedTemplateId);
+        const sampleCtx = getSampleTemplateContext();
+        const renderedSubject = applyTemplateTokens(currentSubject, sampleCtx);
+        const renderedText = applyTemplateTokens(currentBody, sampleCtx);
+        const renderedHeadline = applyTemplateTokens(currentHeadline || (selected && selected.headline) || currentSubject, sampleCtx);
+
+        const prevSubEl = document.getElementById('template-preview-subject');
+        const prevBoxEl = document.getElementById('template-preview-html-box');
+        if (prevSubEl) prevSubEl.textContent = renderedSubject;
+        if (prevBoxEl) {
+          prevBoxEl.innerHTML = buildBrandedEmailHtml({
+            headline: renderedHeadline,
+            bodyText: renderedText,
+            context: sampleCtx
+          });
+        }
+      } else {
+        previewPane?.classList.add('hidden');
+        editPane?.classList.remove('hidden');
+        if (editBtn) editBtn.className = 'px-2.5 py-1 rounded-lg bg-white text-slate-900 shadow-2xs text-xs font-bold transition';
+        if (previewBtn) previewBtn.className = 'px-2.5 py-1 rounded-lg text-slate-600 hover:text-slate-900 text-xs font-semibold transition';
+      }
+    }
+
+    function insertEmailTemplatePlaceholder(token) {
+      if (emailTemplateEditorMode !== 'edit') {
+        switchEmailTemplateEditorMode('edit');
+      }
+      const textarea = document.getElementById('template-editor-body');
+      if (!textarea) return;
+      const start = textarea.selectionStart ?? textarea.value.length;
+      const end = textarea.selectionEnd ?? textarea.value.length;
+      const before = textarea.value.slice(0, start);
+      const after = textarea.value.slice(end);
+      textarea.value = `${before}${token}${after}`;
+      textarea.focus();
+      const cursor = start + token.length;
+      try { textarea.setSelectionRange(cursor, cursor); } catch {}
+      handleTemplateFieldInput();
+    }
+
+    function selectEmailTemplate(tplId) {
+      state.selectedTemplateId = tplId;
+      const status = document.getElementById('template-editor-status');
+      if (status) {
+        status.textContent = 'All changes saved';
+        status.className = 'text-xs text-slate-400 mt-0.5';
+      }
+      renderEmailTemplatesView();
+    }
+
+    function handleTemplateFieldInput() {
+      const status = document.getElementById('template-editor-status');
+      if (status) {
+        status.textContent = 'Unsaved changes...';
+        status.className = 'text-xs text-amber-600 font-semibold mt-0.5';
+      }
+    }
+
+    function createNewEmailTemplate() {
+      const newTpl = {
+        id: `tpl-${Date.now()}`,
+        name: 'Custom Template',
+        triggerLabel: 'Custom Template',
+        headline: '{{title}}',
+        subject: 'Notification: {{title}}',
+        body: 'Dear {{name}},\n\nPlease review the update on {{loginUrl}}.\n\nRegards,\nSPM NIWAS',
+        isSystem: false
+      };
+      state.emailTemplates.push(newTpl);
+      state.selectedTemplateId = newTpl.id;
+      emailTemplateEditorMode = 'edit';
+      syncEmailTemplatesToCloud();
+      renderEmailTemplatesView();
+      showToast('New custom template created.', 'info');
+    }
+
+    function saveSelectedEmailTemplate() {
+      const selected = (state.emailTemplates || []).find(t => t.id === state.selectedTemplateId);
+      if (!selected) return;
+      selected.name = sanitizeTemplateBrandText(document.getElementById('template-editor-name')?.value.trim() || selected.name);
+      selected.headline = sanitizeTemplateBrandText(document.getElementById('template-editor-headline')?.value || '');
+      selected.subject = sanitizeTemplateBrandText(document.getElementById('template-editor-subject')?.value || '');
+      selected.body = sanitizeTemplateBrandText(document.getElementById('template-editor-body')?.value || '');
+      const status = document.getElementById('template-editor-status');
+      if (status) {
+        status.textContent = 'All changes saved';
+        status.className = 'text-xs text-emerald-600 font-semibold mt-0.5';
+      }
+      syncEmailTemplatesToCloud();
+      renderEmailTemplatesView();
+      showToast('Email template saved & synced.', 'success');
+    }
+
+    function deleteSelectedEmailTemplate() {
+      const selected = (state.emailTemplates || []).find(t => t.id === state.selectedTemplateId);
+      if (!selected || selected.isSystem) return;
+      openAppConfirmDialog({
+        title: 'Delete Email Template',
+        subtitle: selected.name,
+        message: `Are you sure you want to delete "${selected.name}"?`,
+        iconClass: 'fa-solid fa-trash-can',
+        tone: 'danger',
+        cancelLabel: 'Cancel',
+        confirmLabel: 'Delete Template',
+        confirmIconClass: 'fa-solid fa-trash-can',
+        onConfirm: () => {
+          state.emailTemplates = state.emailTemplates.filter(t => t.id !== selected.id);
+          state.selectedTemplateId = state.emailTemplates[0]?.id || '';
+          syncEmailTemplatesToCloud();
+          renderEmailTemplatesView();
+          showToast('Template deleted.', 'info');
+        }
+      });
+    }
+
+    function sendTestSelectedEmailTemplate() {
+      const session = getActiveSessionInfo();
+      const recipient = session.email || SUPER_ADMIN_EMAIL;
+      const currentHeadline = document.getElementById('template-editor-headline')?.value || '';
+      const currentSubject = document.getElementById('template-editor-subject')?.value || '';
+      const currentBody = document.getElementById('template-editor-body')?.value || '';
+      const selected = (state.emailTemplates || []).find(t => t.id === state.selectedTemplateId);
+      const sampleCtx = {
+        ...getSampleTemplateContext(),
+        name: session.name || 'Director (Super Admin)',
+        email: recipient
+      };
+      const subject = `[TEST] ${applyTemplateTokens(currentSubject, sampleCtx)}`;
+      const textBody = applyTemplateTokens(currentBody, sampleCtx);
+      const headline = applyTemplateTokens(currentHeadline || (selected && selected.headline) || currentSubject, sampleCtx);
+      const htmlBody = buildBrandedEmailHtml({ headline, bodyText: textBody, context: sampleCtx });
+
+      showToast(`Sending test email to ${recipient}...`, 'info');
+      sendPortalEmail({ to: recipient, subject, htmlBody, textBody }).then(res => {
+        if (res && res.ok) {
+          showToast(`Test email sent to ${recipient}.`, 'success');
+        } else {
+          showToast(`Test email failed: ${(res && res.error) || 'Check Apps Script gateway'}`, 'warning');
+        }
+      });
+    }
+
+    function compileAndOpenGmailTemplate(templateId, context = {}) {
+      const compiled = renderEmailTemplate(templateId, context);
+      const subject = encodeURIComponent(compiled.subject);
+      const body = encodeURIComponent(compiled.textBody);
+      const to = encodeURIComponent(context.email || '');
+      window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${to}&su=${subject}&body=${body}`, '_blank');
     }
 
     function resendSystemAdminWelcomeEmail(sysAdminId) {
@@ -2894,6 +3325,8 @@
         }
       } else if (tab === 'system-admin') {
         items.push(`<span class="text-slate-400">/</span><span>Settings</span><span class="text-slate-400">/</span><span class="font-semibold text-slate-700">System Admin</span>`);
+      } else if (tab === 'email-templates') {
+        items.push(`<span class="text-slate-400">/</span><span>Settings</span><span class="text-slate-400">/</span><span class="font-semibold text-slate-700">Email Templates</span>`);
       } else if (tab === 'conference-details' || tab === 'edit-conference') {
         const conf = (state.conferences || []).find(c => c.id === selectedConferenceId);
         items.push(`<span class="text-slate-400">/</span><span>Settings</span><span class="text-slate-400">/</span><button type="button" onclick="switchTab('conferences')" class="hover:text-indigo-800 hover:underline transition">Conference</button>`);
@@ -2925,6 +3358,9 @@
       if (tab === 'system-admin' && !canCurrentUserManageSystemAdmins()) {
         tab = 'overview';
       }
+      if (tab === 'email-templates' && !isHardcodedSuperAdminSession()) {
+        tab = 'overview';
+      }
 
       currentTab = tab;
 
@@ -2937,6 +3373,7 @@
         'view-conferences',
         'view-users-permissions',
         'view-system-admin',
+        'view-email-templates',
         'view-conference-details',
         'view-edit-conference'
       ];
@@ -2987,6 +3424,11 @@
         if (titleEl) titleEl.textContent = 'System Admin';
         if (subEl) subEl.textContent = 'Grant system-wide administrative powers across all conferences.';
         renderSystemAdminsList();
+      } else if (tab === 'email-templates') {
+        document.getElementById('view-email-templates')?.classList.remove('hidden');
+        if (titleEl) titleEl.textContent = 'Email Templates';
+        if (subEl) subEl.textContent = 'Inspect, preview, and customize automated email templates sent across portal triggers.';
+        renderEmailTemplatesView();
       } else if (tab === 'conference-details') {
         const conf = (state.conferences || []).find(c => c.id === selectedConferenceId);
         document.getElementById('view-conference-details')?.classList.remove('hidden');
@@ -3092,26 +3534,236 @@
 
       if (section === 'authors') {
         const authors = Array.isArray(conf.authors) ? conf.authors : [];
+        const hasSheet = Boolean(conf.googleSheetId);
+
+        const headerBar = `
+          <div class="bg-white rounded-2xl border border-slate-200/80 p-4 sm:px-6 sm:py-4 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div class="space-y-0.5">
+              <div class="flex items-center gap-2">
+                <h3 class="text-sm font-bold text-slate-900">Conference Authors</h3>
+                <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">${authors.length}</span>
+              </div>
+              <p class="text-xs text-slate-500">
+                ${hasSheet
+                  ? `Synced from Google Sheet <code class="px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 font-mono text-[11px]">${escapeHtml(conf.googleSheetId)}</code>`
+                  : 'Link a Submission Google Sheet ID on the Conference Edit page to populate authors automatically.'}
+              </p>
+            </div>
+            ${hasSheet ? `
+              <button type="button" onclick="syncConferenceAuthorsFromSheet('${escapeHtml(conf.id)}', true)" class="self-start sm:self-auto px-3.5 py-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 text-xs font-semibold shadow-2xs transition inline-flex items-center gap-2">
+                <i class="fa-solid fa-rotate text-indigo-600"></i>
+                <span>Sync from Sheet</span>
+              </button>
+            ` : ''}
+          </div>
+        `;
+
         if (authors.length === 0) {
           container.innerHTML = `
-            <div class="bg-white rounded-2xl border border-dashed border-slate-300 p-8 text-center">
-              <p class="text-xs sm:text-sm text-slate-500">No authors have been imported for this conference yet.</p>
+            <div class="space-y-4">
+              ${headerBar}
+              <div class="bg-white rounded-2xl border border-dashed border-slate-300 p-8 text-center space-y-2">
+                <p class="text-xs sm:text-sm text-slate-500">
+                  ${hasSheet
+                    ? 'No author submissions found in the linked Google Sheet yet. Click <strong>Sync from Sheet</strong> after responses arrive.'
+                    : 'No authors have been imported for this conference yet. Add a Submission Google Sheet ID in Conference Details to populate author cards.'}
+                </p>
+              </div>
             </div>
           `;
           return;
         }
+
+        container.innerHTML = `
+          <div class="space-y-4">
+            ${headerBar}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              ${authors.map(author => {
+                const themes = Array.isArray(author.themes)
+                  ? author.themes
+                  : (author.theme ? [author.theme] : []);
+                const photoUrl = String(author.photoURL || '').trim();
+                const avatarHtml = photoUrl
+                  ? `<img src="${escapeHtml(photoUrl)}" alt="${escapeHtml(author.name)}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" class="w-12 h-12 rounded-full object-cover border border-slate-200 shrink-0"><div style="display:none" class="w-12 h-12 rounded-full bg-slate-800 text-white font-bold text-sm items-center justify-center shrink-0">${escapeHtml(getInitials(author.name))}</div>`
+                  : `<div class="w-12 h-12 rounded-full bg-slate-800 text-white font-bold text-sm flex items-center justify-center shrink-0">${escapeHtml(getInitials(author.name))}</div>`;
+
+                return `
+                  <div class="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-2xs flex items-start gap-3.5">
+                    ${avatarHtml}
+                    <div class="min-w-0 flex-1 space-y-1.5">
+                      <div>
+                        <h3 class="text-sm font-bold text-slate-900 leading-snug">${escapeHtml(author.name || 'Unnamed Author')}</h3>
+                        ${author.designation ? `<p class="text-xs text-slate-600 leading-snug mt-0.5">${escapeHtml(author.designation)}</p>` : ''}
+                        ${author.email ? `<p class="text-[11px] text-slate-400 truncate mt-0.5">${escapeHtml(author.email)}</p>` : ''}
+                      </div>
+                      ${author.paperTitle ? `
+                        <div class="pt-1.5 border-t border-slate-100">
+                          <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-400">Paper</span>
+                          <p class="text-xs font-semibold text-slate-800 leading-snug mt-0.5">${escapeHtml(author.paperTitle)}</p>
+                        </div>
+                      ` : ''}
+                      <div class="pt-1 flex flex-wrap gap-1.5">
+                        ${themes.length > 0
+                          ? themes.map(t => `<span class="inline-block px-2 py-0.5 rounded-md text-[11px] font-medium bg-indigo-50 text-indigo-700 border border-indigo-100">${escapeHtml(t)}</span>`).join('')
+                          : `<span class="text-[11px] text-slate-400 italic">No theme specified</span>`}
+                      </div>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        `;
+        return;
       }
 
       const papers = Array.isArray(conf.papers) ? conf.papers : [];
       if (papers.length === 0) {
         container.innerHTML = `
-          <div class="bg-white rounded-2xl border border-dashed border-slate-300 p-8 text-center">
-            <p class="text-xs sm:text-sm text-slate-500">No papers have been imported for this conference yet.</p>
+          <div class="bg-white rounded-2xl border border-dashed border-slate-300 p-8 text-center space-y-2">
+            <h4 class="text-sm font-bold text-slate-800">Conference Papers</h4>
+            <p class="text-xs sm:text-sm text-slate-500 max-w-md mx-auto">
+              No papers have been imported for this conference yet.
+            </p>
           </div>
         `;
+        return;
+      }
+
+      container.innerHTML = `
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          ${papers.map(p => `
+            <div class="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-2xs space-y-1.5">
+              <h3 class="text-sm font-bold text-slate-900 leading-snug">${escapeHtml(p.title || 'Untitled Paper')}</h3>
+              <p class="text-xs text-slate-500">${escapeHtml(p.author || '')}</p>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    function normalizeDrivePhotoUrl(rawUrl) {
+      const url = String(rawUrl || '').trim();
+      if (!url) return '';
+      const driveMatch = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/) || url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+      if (driveMatch && driveMatch[1]) {
+        return `https://drive.google.com/thumbnail?id=${driveMatch[1]}&sz=w200`;
+      }
+      if (/^https?:\/\//i.test(url)) return url;
+      return '';
+    }
+
+    function parseGoogleSheetRowsToAuthors(headers, rows) {
+      const lowerHeaders = headers.map(h => String(h || '').toLowerCase().trim());
+      const findColIndex = (patterns, excludePatterns = []) => {
+        for (const pat of patterns) {
+          const idx = lowerHeaders.findIndex(h =>
+            pat.test(h) && !excludePatterns.some(ex => ex.test(h))
+          );
+          if (idx !== -1) return idx;
+        }
+        return -1;
+      };
+
+      const nameIdx = findColIndex([/\bauthor\s*name\b/, /\bfull\s*name\b/, /\bname\b/], [/paper/, /title/, /file/, /conference/]);
+      const emailIdx = findColIndex([/\bemail\b/, /\be-mail\b/, /\bgoogle\s*mail\b/]);
+      const desigIdx = findColIndex([/\bdesignation\b/, /\bprofile\b/, /\baffiliation\b/, /\binstitution\b/, /\borganization\b/, /\bdepartment\b/, /\bbio\b/]);
+      const paperIdx = findColIndex([/\bpaper\s*(title|name)\b/, /\bmanuscript\s*(title|name)\b/, /\btitle\s*of\s*(the\s*)?paper\b/, /\bpaper\b/, /\btitle\b/], [/author/, /designation/]);
+      const themeIdx = findColIndex([/\bpaper\s*theme/, /\btheme/, /\btrack\b/, /\bsub-?theme/, /\bcategory\b/, /\btopic\b/]);
+      const photoIdx = findColIndex([/\bphoto\b/, /\bprofile\s*(pic|picture|photo|image)\b/, /\bavatar\b/, /\bimage\b/, /\bheadshot\b/]);
+
+      const authors = [];
+      rows.forEach((cells, rowIdx) => {
+        const getVal = (i) => (i >= 0 && cells[i] != null ? String(cells[i]).trim() : '');
+        const name = getVal(nameIdx);
+        const email = getVal(emailIdx).toLowerCase();
+        const designation = getVal(desigIdx);
+        const paperTitle = getVal(paperIdx);
+        const rawTheme = getVal(themeIdx);
+        const photoURL = normalizeDrivePhotoUrl(getVal(photoIdx));
+
+        if (!name && !email && !paperTitle) return;
+
+        const themes = rawTheme
+          ? rawTheme.split(/[,;\n|]+/).map(t => t.trim()).filter(Boolean)
+          : [];
+
+        authors.push({
+          id: `author_${rowIdx}_${email || name || rowIdx}`,
+          name: name || email || `Author ${rowIdx + 1}`,
+          email,
+          designation,
+          paperTitle,
+          themes,
+          photoURL
+        });
+      });
+
+      return authors;
+    }
+
+    async function syncConferenceAuthorsFromSheet(conferenceId, notifyUser = false) {
+      const conf = (state.conferences || []).find(c => c.id === conferenceId);
+      if (!conf || !conf.googleSheetId) return;
+
+      const sheetId = extractGoogleSheetId(conf.googleSheetId);
+      if (!sheetId) return;
+
+      if (notifyUser) {
+        showToast('Syncing authors from Google Sheet...', 'info');
+      }
+
+      try {
+        const gvizUrl = `https://docs.google.com/spreadsheets/d/${encodeURIComponent(sheetId)}/gviz/tq?tqx=out:json`;
+        const response = await fetch(gvizUrl);
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+        const text = await response.text();
+        const jsonMatch = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\);?\s*$/);
+        if (!jsonMatch || !jsonMatch[1]) {
+          throw new Error('Could not parse Google Sheet response. Ensure the sheet is shared as "Anyone with the link can view".');
+        }
+        const payload = JSON.parse(jsonMatch[1]);
+        const table = payload?.table;
+        if (!table || !Array.isArray(table.cols) || !Array.isArray(table.rows)) {
+          throw new Error('No tabular columns found in the Google Sheet.');
+        }
+
+        let headers = table.cols.map(c => String(c.label || '').trim());
+        let dataRows = table.rows.map(r => (Array.isArray(r.c) ? r.c.map(cell => (cell && cell.v != null ? (cell.f || cell.v) : '')) : []));
+
+        // If gviz did not treat row 1 as labels, promote first non-empty row to headers
+        if (headers.every(h => !h) && dataRows.length > 0) {
+          headers = dataRows[0].map(v => String(v || '').trim());
+          dataRows = dataRows.slice(1);
+        }
+
+        const parsedAuthors = parseGoogleSheetRowsToAuthors(headers, dataRows);
+        conf.authors = parsedAuthors;
+        conf.authorsSyncedAt = Date.now();
+        conf.updatedAt = Date.now();
+
+        syncConferenceToCloud(conf);
+        expandedSidebarConferenceId = conf.id;
+        renderAll();
+
+        if (notifyUser) {
+          showToast(`Synced ${parsedAuthors.length} ${parsedAuthors.length === 1 ? 'author' : 'authors'} from Google Sheet.`, 'success');
+        }
+      } catch (err) {
+        console.warn('Google Sheet author sync warning:', err);
+        if (notifyUser) {
+          showToast(
+            `Unable to fetch Google Sheet (${err.message || 'Check sharing permissions'}). Ensure the Sheet is shared as "Anyone with the link can view".`,
+            'warning'
+          );
+        }
       }
     }
 
+    // =========================================================================
+    // NAVIGATION, SIDEBAR ACCORDION & BREADCRUMBS
     // =========================================================================
     // ADD CONFERENCE MODAL & SAVE HANDLERS
     // =========================================================================
@@ -4116,8 +4768,9 @@
         name: String(f.name || '').trim(),
         url: String(f.url || '').trim(),
         dataUrl: f.dataUrl || '',
-        fileName: String(f.fileName || '').trim()
+        fileName: f.fileName || ''
       }));
+      const prevSheetId = conf.googleSheetId || '';
       conf.googleSheetId = sheetId;
       conf.updatedAt = Date.now();
 
@@ -4126,6 +4779,10 @@
       renderAll();
       switchTab('conference-details');
       showToast('Conference details saved.', 'success');
+
+      if (sheetId && (sheetId !== prevSheetId || !Array.isArray(conf.authors) || conf.authors.length === 0)) {
+        syncConferenceAuthorsFromSheet(conf.id, true);
+      }
     }
 
     function cancelConferenceConfirmation() {
@@ -4248,6 +4905,9 @@
       if (currentTab === 'system-admin') {
         renderSystemAdminsList();
       }
+      if (currentTab === 'email-templates') {
+        renderEmailTemplatesView();
+      }
     }
 
     Object.assign(window, {
@@ -4262,6 +4922,17 @@
       handleAddSystemAdmin,
       removeSystemAdmin,
       resendSystemAdminWelcomeEmail,
+      renderEmailTemplatesView,
+      switchEmailTemplateEditorMode,
+      insertEmailTemplatePlaceholder,
+      selectEmailTemplate,
+      handleTemplateFieldInput,
+      createNewEmailTemplate,
+      saveSelectedEmailTemplate,
+      deleteSelectedEmailTemplate,
+      sendTestSelectedEmailTemplate,
+      renderEmailTemplate,
+      compileAndOpenGmailTemplate,
       openAddConferenceModal,
       closeAddConferenceModal,
       openEditConferencePage,
@@ -4293,6 +4964,7 @@
       updateEditAdditionalFileField,
       handleEditAdditionalFileUpload,
       openConferenceDetails,
+      syncConferenceAuthorsFromSheet,
       openScheduleFilePreview,
       openAdditionalFilePreview,
       closeAdditionalFilePreview,
