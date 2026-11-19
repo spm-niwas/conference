@@ -457,9 +457,9 @@
 
         <!-- VIEW 6: CONFERENCE DETAILS (`conference-details`) -->
         <div id="view-conference-details" class="space-y-6 hidden">
-          <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+          <div id="conf-details-card" class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
             <!-- Two-Pane Details Grid -->
-            <div class="divide-y divide-slate-200/80">
+            <div id="conf-details-standard-rows" class="divide-y divide-slate-200/80">
               <!-- 1. Conference Name -->
               <div class="grid grid-cols-1 md:grid-cols-12">
                 <div class="md:col-span-4 p-4 sm:px-6 sm:py-5 bg-slate-50/70 border-b md:border-b-0 md:border-r border-slate-200/80 space-y-1">
@@ -527,9 +527,12 @@
 
               <!-- 7. Additional Files -->
               <div class="grid grid-cols-1 md:grid-cols-12">
-                <div class="md:col-span-4 p-4 sm:px-6 sm:py-5 bg-slate-50/70 border-b md:border-b-0 md:border-r border-slate-200/80 space-y-1">
-                  <span class="block text-xs sm:text-sm font-bold text-slate-800">Additional Files</span>
-                  <p class="text-xs text-slate-500 leading-relaxed">Supplementary brochures, guidelines, and reference links.</p>
+                <div class="md:col-span-4 p-4 sm:px-6 sm:py-5 bg-slate-50/70 border-b md:border-b-0 md:border-r border-slate-200/80 space-y-2.5">
+                  <div class="space-y-1">
+                    <span class="block text-xs sm:text-sm font-bold text-slate-800">Additional Files</span>
+                    <p class="text-xs text-slate-500 leading-relaxed">Supplementary brochures, guidelines, and reference links.</p>
+                  </div>
+                  <div id="conf-detail-additional-files-left" class="space-y-2 pt-1"></div>
                 </div>
                 <div id="conf-detail-additional-files" class="md:col-span-8 p-4 sm:px-6 sm:py-5 bg-white flex items-center"></div>
               </div>
@@ -541,6 +544,25 @@
                   <p class="text-xs text-slate-500 leading-relaxed">Linked Google Form response sheet ID for live submission sync.</p>
                 </div>
                 <div id="conf-detail-sheet-id" class="md:col-span-8 p-4 sm:px-6 sm:py-5 bg-white flex items-center"></div>
+              </div>
+            </div>
+
+            <!-- Two-Pane Document Viewer Mode (Left Pane keeps File Cards; Right Pane opens Selected Document) -->
+            <div id="conf-document-split-view" class="hidden grid grid-cols-1 md:grid-cols-12">
+              <div class="md:col-span-4 p-4 sm:px-6 sm:py-5 bg-slate-50/70 border-b md:border-b-0 md:border-r border-slate-200/80 space-y-3">
+                <div class="space-y-1">
+                  <span class="block text-xs sm:text-sm font-bold text-slate-800">Additional Files</span>
+                  <p class="text-xs text-slate-500 leading-relaxed">Select a document card below to view it on the right.</p>
+                </div>
+                <div id="conf-detail-split-files-left" class="space-y-2 pt-1"></div>
+              </div>
+              <div class="md:col-span-8 bg-white relative flex flex-col min-w-0">
+                <!-- Floating Cross Button inside Right Pane to Exit Document Back to View Page -->
+                <button type="button" onclick="closeAdditionalFilePreview()" title="Close Document & Return to View" aria-label="Close Document" class="absolute top-3 right-3 z-30 w-9 h-9 rounded-full bg-slate-900 hover:bg-slate-800 text-white shadow-lg border border-slate-700 flex items-center justify-center transition">
+                  <i class="fa-solid fa-xmark text-sm"></i>
+                </button>
+                <div id="conf-document-viewer-header" class="px-5 py-3 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2 pr-14"></div>
+                <div id="conf-document-viewer-body" class="w-full bg-slate-100/70 flex-1 flex items-center justify-center min-h-[68vh]"></div>
               </div>
             </div>
           </div>
@@ -1012,7 +1034,8 @@
     let addedUsersSort = { field: 'name', dir: 'asc' };
     let activeWorkspaceConferenceId = null;
     let activeWorkspaceSection = null; // 'editors' | 'reviewers' | 'authors' | 'papers'
-    let expandedSidebarConferenceIds = new Set();
+    let expandedSidebarConferenceId = null;
+    let activeAdditionalFilePreviewIndex = null;
 
     function saveState() {
       safeStorage.setItem(STORAGE_KEY, JSON.stringify({
@@ -1453,10 +1476,10 @@
     }
 
     function toggleSidebarConferenceGroup(conferenceId) {
-      if (expandedSidebarConferenceIds.has(conferenceId)) {
-        expandedSidebarConferenceIds.delete(conferenceId);
+      if (expandedSidebarConferenceId === conferenceId) {
+        expandedSidebarConferenceId = null;
       } else {
-        expandedSidebarConferenceIds.add(conferenceId);
+        expandedSidebarConferenceId = conferenceId;
       }
       renderSidebarActiveConferences();
     }
@@ -1472,7 +1495,7 @@
 
       activeWorkspaceConferenceId = conferenceId;
       activeWorkspaceSection = targetSection;
-      expandedSidebarConferenceIds.add(conferenceId);
+      expandedSidebarConferenceId = conferenceId;
       switchTab(`conf-${targetSection}`);
     }
 
@@ -1500,7 +1523,7 @@
 
       container.innerHTML = activeConfs.map(conf => {
         const isCurrentConf = currentTab.startsWith('conf-') && activeWorkspaceConferenceId === conf.id;
-        const isExpanded = expandedSidebarConferenceIds.has(conf.id) || isCurrentConf;
+        const isExpanded = expandedSidebarConferenceId === conf.id;
         const allowedSections = getAllowedSectionsForConference(conf);
 
         const subItemsHtml = isExpanded ? `
@@ -1801,6 +1824,7 @@
         const conf = (state.conferences || []).find(c => c.id === selectedConferenceId);
         if (titleEl) titleEl.textContent = conf ? conf.name : 'Conference Details';
         if (subEl) subEl.textContent = 'Review conference overview, schedule dates, and configured themes.';
+        activeAdditionalFilePreviewIndex = null;
         renderConferenceDetailsView();
       } else if (tabId === 'edit-conference') {
         const conf = (state.conferences || []).find(c => c.id === editingConferenceId);
@@ -2077,7 +2101,7 @@
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-center">
               <div class="sm:col-span-4">
-                <input type="text" value="${escapeHtml(item.title || '')}" oninput="updateEditAdditionalFileField(${idx}, 'title', this.value)" placeholder="File Name (e.g., Author Guidelines)" class="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <input type="text" required value="${escapeHtml(item.title || '')}" oninput="formatSentenceCaseInput(this); updateEditAdditionalFileField(${idx}, 'title', this.value)" placeholder="File Name * (e.g., Author Guidelines)" class="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500">
               </div>
               <div class="sm:col-span-4">
                 <input id="edit-add-file-picker-${idx}" type="file" onchange="handleEditAdditionalFileUpload(${idx}, event)" class="hidden">
@@ -2143,7 +2167,10 @@
         editAdditionalFilesDraft[index].fileSize = file.size;
         editAdditionalFilesDraft[index].dataUrl = dataUrl;
         if (!editAdditionalFilesDraft[index].title.trim()) {
-          editAdditionalFilesDraft[index].title = file.name.replace(/\.[^/.]+$/, '');
+          const baseName = file.name.replace(/\.[^/.]+$/, '').trim();
+          editAdditionalFilesDraft[index].title = baseName
+            ? baseName.charAt(0).toUpperCase() + baseName.slice(1)
+            : '';
         }
         renderEditAdditionalFilesList();
         markEditConferenceDirty();
@@ -2449,6 +2476,98 @@
       document.getElementById('add-conference-modal').classList.remove('hidden');
     }
 
+    function closeAddConferenceModal() {
+      const modal = document.getElementById('add-conference-modal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function handleConferenceDescriptionInput() {
+      const descEl = document.getElementById('conf-desc-input');
+      const counterEl = document.getElementById('conf-desc-word-counter');
+      if (!descEl || !counterEl) return;
+      const words = countWords(descEl.value);
+      counterEl.textContent = `${words} / 20 words`;
+      if (words > 20) {
+        counterEl.className = 'text-[11px] font-semibold px-2 py-0.5 rounded-md bg-rose-100 text-rose-700';
+      } else {
+        counterEl.className = 'text-[11px] font-semibold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600';
+      }
+    }
+
+    function handleConferenceStartDateChange() {
+      const startInput = document.getElementById('conf-start-date');
+      const endInput = document.getElementById('conf-end-date');
+      if (!startInput || !endInput) return;
+      const startVal = startInput.value;
+      if (!startVal) {
+        endInput.value = '';
+        endInput.disabled = true;
+        return;
+      }
+      endInput.disabled = false;
+      endInput.min = startVal;
+      if (endInput.value && endInput.value < startVal) {
+        endInput.value = startVal;
+      }
+    }
+
+    function handleAddConferenceDone(event) {
+      event.preventDefault();
+      const errEl = document.getElementById('add-conference-error');
+      const showError = (msg) => {
+        if (!errEl) return;
+        errEl.textContent = msg;
+        errEl.classList.remove('hidden');
+      };
+      if (errEl) errEl.classList.add('hidden');
+
+      const name = document.getElementById('conf-name-input').value.trim();
+      const description = document.getElementById('conf-desc-input').value.trim();
+      const startDate = document.getElementById('conf-start-date').value;
+      const endDate = document.getElementById('conf-end-date').value;
+
+      if (!name) return showError('Please enter the Conference Name.');
+      if (!description) return showError('Please enter the Short Description.');
+      if (countWords(description) > 20) return showError('Short Description cannot exceed 20 words.');
+      if (!startDate) return showError('Please select a Start Date.');
+      if (!endDate) return showError('Please select an End Date.');
+      if (endDate < startDate) return showError('End Date cannot be earlier than the Start Date.');
+
+      pendingConferenceDraft = {
+        id: `conf_${Date.now()}`,
+        name,
+        description,
+        detailedDescription: '',
+        startDate,
+        endDate,
+        googleSheetId: '',
+        scheduleFile: null,
+        additionalFiles: [],
+        themes: []
+      };
+
+      closeAddConferenceModal();
+
+      const sFmt = formatDateDDMMYYYY(startDate);
+      const eFmt = formatDateDDMMYYYY(endDate);
+      openAppConfirmDialog({
+        title: 'Confirm New Conference',
+        subtitle: 'Please verify the details before creating this conference.',
+        summaryItems: [
+          { label: 'Conference Name', value: name, emphasize: true },
+          { label: 'Short Description', value: description },
+          { label: 'Scheduled Dates', value: sFmt === eFmt ? sFmt : `${sFmt} to ${eFmt}` }
+        ],
+        iconClass: 'fa-solid fa-calendar-plus',
+        tone: 'slate',
+        cancelLabel: 'Back to Edit',
+        confirmLabel: 'Create Conference',
+        confirmIconClass: 'fa-solid fa-check',
+        onCancel: cancelConferenceConfirmation,
+        onConfirm: confirmSaveConference
+      });
+    }
+
     function openEditConferencePage(conf, returnTab = 'conferences') {
       if (!conf) return;
       editingConferenceId = conf.id;
@@ -2616,6 +2735,13 @@
         rawThemes.split('\n').map(t => t.trim()).filter(Boolean)
       ));
 
+      for (let i = 0; i < editAdditionalFilesDraft.length; i++) {
+        const rawTitle = String(editAdditionalFilesDraft[i].title || '').trim();
+        if (!rawTitle) {
+          return showError(`Please enter a File Name for Additional File #${i + 1}.`);
+        }
+      }
+
       const cleanedAdditionalFiles = editAdditionalFilesDraft
         .slice(0, 10)
         .map((item, idx) => {
@@ -2623,20 +2749,18 @@
           if (safeUrl && !/^(https?:\/\/|mailto:)/i.test(safeUrl)) {
             safeUrl = `https://${safeUrl}`;
           }
-          const displayTitle = String(item.title || '').trim()
-            || String(item.uploadedFileName || '').trim()
-            || (safeUrl ? `Resource ${idx + 1}` : '');
+          const rawTitle = String(item.title || '').trim();
+          const capitalizedTitle = rawTitle.charAt(0).toUpperCase() + rawTitle.slice(1);
           return {
             id: item.id || `file_${Date.now()}_${idx}`,
-            title: displayTitle,
+            title: capitalizedTitle,
             uploadedFileName: String(item.uploadedFileName || '').trim(),
             fileType: String(item.fileType || ''),
             fileSize: Number(item.fileSize || 0),
             dataUrl: String(item.dataUrl || ''),
             fileUrl: safeUrl
           };
-        })
-        .filter(item => item.title || item.dataUrl || item.fileUrl);
+        });
 
       pendingConferenceDraft = {
         id: editingConferenceId,
@@ -2713,6 +2837,7 @@
       const conf = (state.conferences || []).find(c => c.id === conferenceId);
       if (!conf) return;
       selectedConferenceId = conferenceId;
+      activeAdditionalFilePreviewIndex = null;
       switchTab('conference-details');
     }
 
@@ -2730,100 +2855,122 @@
       openEditConferencePage(conf, 'conference-details');
     }
 
-    function closeAddConferenceModal() {
-      const modal = document.getElementById('add-conference-modal');
-      if (modal) modal.classList.add('hidden');
+    function getEmbeddableDocumentUrl(url) {
+      const raw = String(url || '').trim();
+      if (!raw) return '';
+      const driveFileMatch = raw.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/);
+      if (driveFileMatch && driveFileMatch[1]) {
+        return `https://drive.google.com/file/d/${driveFileMatch[1]}/preview`;
+      }
+      const driveOpenMatch = raw.match(/drive\.google\.com\/open\?id=([a-zA-Z0-9_-]+)/);
+      if (driveOpenMatch && driveOpenMatch[1]) {
+        return `https://drive.google.com/file/d/${driveOpenMatch[1]}/preview`;
+      }
+      return raw;
     }
 
-    function handleConferenceDescriptionInput() {
-      const descEl = document.getElementById('conf-desc-input');
-      const counterEl = document.getElementById('conf-desc-word-counter');
-      if (!descEl || !counterEl) return;
-      const words = countWords(descEl.value);
-      counterEl.textContent = `${words} / 20 words`;
-      if (words > 20) {
-        counterEl.className = 'text-[11px] font-semibold px-2 py-0.5 rounded-md bg-rose-100 text-rose-700';
-      } else {
-        counterEl.className = 'text-[11px] font-semibold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600';
-      }
+    function openAdditionalFilePreview(index) {
+      const conf = (state.conferences || []).find(c => c.id === selectedConferenceId);
+      if (!conf) return;
+      const files = Array.isArray(conf.additionalFiles) ? conf.additionalFiles : [];
+      if (index < 0 || index >= files.length) return;
+      activeAdditionalFilePreviewIndex = index;
+      renderConferenceDetailsView();
     }
 
-    function handleConferenceStartDateChange() {
-      const startInput = document.getElementById('conf-start-date');
-      const endInput = document.getElementById('conf-end-date');
-      if (!startInput || !endInput) return;
-      const startVal = startInput.value;
-      if (!startVal) {
-        endInput.value = '';
-        endInput.disabled = true;
-        return;
-      }
-      endInput.disabled = false;
-      endInput.min = startVal;
-      if (endInput.value && endInput.value < startVal) {
-        endInput.value = startVal;
-      }
-    }
-
-    function handleAddConferenceDone(event) {
-      event.preventDefault();
-      const errEl = document.getElementById('add-conference-error');
-      const showError = (msg) => {
-        if (!errEl) return;
-        errEl.textContent = msg;
-        errEl.classList.remove('hidden');
-      };
-      if (errEl) errEl.classList.add('hidden');
-
-      const name = document.getElementById('conf-name-input').value.trim();
-      const description = document.getElementById('conf-desc-input').value.trim();
-      const startDate = document.getElementById('conf-start-date').value;
-      const endDate = document.getElementById('conf-end-date').value;
-
-      if (!name) return showError('Please enter the Conference Name.');
-      if (!description) return showError('Please enter the Short Description.');
-      if (countWords(description) > 20) return showError('Short Description cannot exceed 20 words.');
-      if (!startDate) return showError('Please select a Start Date.');
-      if (!endDate) return showError('Please select an End Date.');
-      if (endDate < startDate) return showError('End Date cannot be earlier than the Start Date.');
-
-      pendingConferenceDraft = {
-        id: `conf_${Date.now()}`,
-        name,
-        description,
-        detailedDescription: '',
-        startDate,
-        endDate,
-        googleSheetId: '',
-        themes: []
-      };
-
-      const sFmt = formatDateDDMMYYYY(startDate);
-      const eFmt = formatDateDDMMYYYY(endDate);
-      const formattedDates = sFmt === eFmt ? sFmt : `${sFmt} to ${eFmt}`;
-
-      document.getElementById('add-conference-modal').classList.add('hidden');
-      openAppConfirmDialog({
-        title: 'Confirm New Conference',
-        subtitle: 'Please review the conference details below before saving.',
-        summaryItems: [
-          { label: 'Conference Name', value: name, emphasize: true },
-          { label: 'Short Description', value: description },
-          { label: 'Conference Dates', value: formattedDates }
-        ],
-        iconClass: 'fa-solid fa-calendar-plus',
-        tone: 'slate',
-        cancelLabel: 'Back to Edit',
-        confirmLabel: 'Confirm & Save',
-        confirmIconClass: 'fa-solid fa-check',
-        onCancel: cancelConferenceConfirmation,
-        onConfirm: confirmSaveConference
-      });
+    function closeAdditionalFilePreview() {
+      activeAdditionalFilePreviewIndex = null;
+      renderConferenceDetailsView();
     }
 
     function renderConferenceDetailsView() {
       const conf = (state.conferences || []).find(c => c.id === selectedConferenceId);
       if (!conf) return;
+
+      const standardRows = document.getElementById('conf-details-standard-rows');
+      const splitView = document.getElementById('conf-document-split-view');
+      const splitFilesLeft = document.getElementById('conf-detail-split-files-left');
+      const viewerHeader = document.getElementById('conf-document-viewer-header');
+      const viewerBody = document.getElementById('conf-document-viewer-body');
+      const files = Array.isArray(conf.additionalFiles) ? conf.additionalFiles : [];
+
+      if (
+        activeAdditionalFilePreviewIndex !== null &&
+        activeAdditionalFilePreviewIndex >= 0 &&
+        activeAdditionalFilePreviewIndex < files.length &&
+        standardRows &&
+        splitView &&
+        viewerHeader &&
+        viewerBody
+      ) {
+        const file = files[activeAdditionalFilePreviewIndex];
+        const label = file.title || file.uploadedFileName || 'Document';
+        const sizeText = formatFileSizeBytes(file.fileSize);
+        const sourceUrl = file.dataUrl || getEmbeddableDocumentUrl(file.fileUrl);
+        const isImage = Boolean(
+          (file.fileType && file.fileType.startsWith('image/')) ||
+          /\.(png|jpe?g|gif|webp|svg)(\?.*)?$/i.test(file.uploadedFileName || file.fileUrl || '')
+        );
+
+        standardRows.classList.add('hidden');
+        splitView.classList.remove('hidden');
+
+        if (splitFilesLeft) {
+          splitFilesLeft.innerHTML = files.map((f, idx) => {
+            const itemLabel = f.title || f.uploadedFileName || `Attachment ${idx + 1}`;
+            const isSelected = idx === activeAdditionalFilePreviewIndex;
+            const btnClass = isSelected
+              ? 'w-full text-left px-3 py-2.5 rounded-xl bg-indigo-50 border border-indigo-300 shadow-2xs transition flex items-center gap-2.5'
+              : 'w-full text-left px-3 py-2.5 rounded-xl bg-white hover:bg-indigo-50/70 border border-slate-200/90 hover:border-indigo-300 shadow-2xs transition flex items-center gap-2.5 group';
+            return `
+              <button type="button" onclick="openAdditionalFilePreview(${idx})" class="${btnClass}">
+                <i class="fa-solid fa-file-lines text-indigo-600 text-xs shrink-0"></i>
+                <span class="text-xs font-semibold ${isSelected ? 'text-indigo-800' : 'text-slate-800 group-hover:text-indigo-700'} truncate flex-1">${escapeHtml(itemLabel)}</span>
+                <i class="fa-solid fa-chevron-right text-[10px] ${isSelected ? 'text-indigo-600' : 'text-slate-400 group-hover:text-indigo-600'} shrink-0"></i>
+              </button>
+            `;
+          }).join('');
+        }
+
+        viewerHeader.innerHTML = `
+          <div class="flex items-center gap-2.5 min-w-0">
+            <div class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+              <i class="fa-solid fa-file-lines text-sm"></i>
+            </div>
+            <div class="min-w-0">
+              <h3 class="text-xs sm:text-sm font-bold text-slate-900 truncate">${escapeHtml(label)}</h3>
+              ${sizeText ? `<p class="text-[11px] text-slate-500">${escapeHtml(sizeText)}</p>` : ''}
+            </div>
+          </div>
+          <div class="flex items-center gap-2 shrink-0">
+            ${file.dataUrl ? `<a href="${escapeHtml(file.dataUrl)}" download="${escapeHtml(file.uploadedFileName || label)}" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold transition inline-flex items-center gap-1.5"><i class="fa-solid fa-download text-[11px]"></i><span>Download</span></a>` : ''}
+            ${file.fileUrl ? `<a href="${escapeHtml(file.fileUrl)}" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-100 text-slate-700 text-xs font-semibold transition inline-flex items-center gap-1.5"><i class="fa-solid fa-arrow-up-right-from-square text-[11px]"></i><span>Open in New Tab</span></a>` : ''}
+          </div>
+        `;
+
+        if (!sourceUrl) {
+          viewerBody.innerHTML = `
+            <div class="p-8 text-center space-y-2">
+              <p class="text-sm font-semibold text-slate-700">No file content or URL attached to "${escapeHtml(label)}".</p>
+              <p class="text-xs text-slate-500">Edit the conference to upload a file or attach a valid document URL.</p>
+            </div>
+          `;
+        } else if (isImage) {
+          viewerBody.innerHTML = `
+            <div class="p-4 sm:p-6 w-full flex items-center justify-center">
+              <img src="${escapeHtml(sourceUrl)}" alt="${escapeHtml(label)}" class="max-w-full max-h-[70vh] rounded-xl shadow-sm border border-slate-200 bg-white object-contain">
+            </div>
+          `;
+        } else {
+          viewerBody.innerHTML = `
+            <iframe src="${escapeHtml(sourceUrl)}" title="${escapeHtml(label)}" class="w-full h-[70vh] border-0 bg-white"></iframe>
+          `;
+        }
+        return;
+      }
+
+      if (standardRows) standardRows.classList.remove('hidden');
+      if (splitView) splitView.classList.add('hidden');
 
       const bcName = document.getElementById('conf-detail-breadcrumb-name');
       const nameEl = document.getElementById('conf-detail-name');
@@ -2833,6 +2980,7 @@
       const datesEl = document.getElementById('conf-detail-dates');
       const daysLeftEl = document.getElementById('conf-detail-days-left');
       const scheduleEl = document.getElementById('conf-detail-schedule');
+      const addFilesLeftEl = document.getElementById('conf-detail-additional-files-left');
       const addFilesEl = document.getElementById('conf-detail-additional-files');
       const sheetIdEl = document.getElementById('conf-detail-sheet-id');
       const themesEl = document.getElementById('conf-detail-themes');
@@ -2903,32 +3051,24 @@
         }
       }
 
-      if (addFilesEl) {
-        const files = Array.isArray(conf.additionalFiles) ? conf.additionalFiles : [];
+      if (addFilesLeftEl && addFilesEl) {
         if (files.length === 0) {
+          addFilesLeftEl.innerHTML = '';
           addFilesEl.innerHTML = `<span class="text-xs text-slate-400">No additional files uploaded.</span>`;
         } else {
+          addFilesLeftEl.innerHTML = files.map((f, idx) => {
+            const label = f.title || f.uploadedFileName || `Attachment ${idx + 1}`;
+            return `
+              <button type="button" onclick="openAdditionalFilePreview(${idx})" class="w-full text-left px-3 py-2 rounded-xl bg-white hover:bg-indigo-50/70 border border-slate-200/90 hover:border-indigo-300 shadow-2xs transition flex items-center gap-2.5 group">
+                <i class="fa-solid fa-file-lines text-indigo-600 text-xs shrink-0"></i>
+                <span class="text-xs font-semibold text-slate-800 group-hover:text-indigo-700 truncate flex-1">${escapeHtml(label)}</span>
+                <i class="fa-solid fa-chevron-right text-[10px] text-slate-400 group-hover:text-indigo-600 shrink-0"></i>
+              </button>
+            `;
+          }).join('');
+
           addFilesEl.innerHTML = `
-            <div class="w-full space-y-2">
-              ${files.map(f => {
-                const label = f.title || f.uploadedFileName || 'Attachment';
-                const sizeText = formatFileSizeBytes(f.fileSize);
-                return `
-                  <div class="flex flex-wrap items-center justify-between gap-2.5 px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs sm:text-sm">
-                    <div class="flex items-center gap-2 min-w-0">
-                      <i class="fa-solid fa-paperclip text-indigo-600 shrink-0"></i>
-                      <span class="font-semibold text-slate-800 truncate">${escapeHtml(label)}</span>
-                      ${f.uploadedFileName && f.uploadedFileName !== label ? `<span class="text-xs text-slate-500 truncate">(${escapeHtml(f.uploadedFileName)})</span>` : ''}
-                      ${sizeText ? `<span class="text-xs text-slate-400 shrink-0">${escapeHtml(sizeText)}</span>` : ''}
-                    </div>
-                    <div class="flex items-center gap-2 shrink-0">
-                      ${f.dataUrl ? `<a href="${escapeHtml(f.dataUrl)}" download="${escapeHtml(f.uploadedFileName || label)}" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold transition inline-flex items-center gap-1.5"><i class="fa-solid fa-download text-[11px]"></i><span>Download</span></a>` : ''}
-                      ${f.fileUrl ? `<a href="${escapeHtml(f.fileUrl)}" target="_blank" rel="noopener noreferrer" class="px-2.5 py-1 rounded-lg border border-slate-300 bg-white hover:bg-slate-100 text-slate-700 text-xs font-semibold transition inline-flex items-center gap-1.5"><i class="fa-solid fa-arrow-up-right-from-square text-[11px]"></i><span>Open URL</span></a>` : ''}
-                    </div>
-                  </div>
-                `;
-              }).join('')}
-            </div>
+            <span class="text-xs text-slate-500">Select any document card on the left to open it in the right-hand pane (${files.length} ${files.length === 1 ? 'file' : 'files'} available).</span>
           `;
         }
       }
@@ -3620,6 +3760,8 @@
       updateEditAdditionalFileField,
       handleEditAdditionalFileUpload,
       openConferenceDetails,
+      openAdditionalFilePreview,
+      closeAdditionalFilePreview,
       editConferenceById,
       editActiveConference,
       renderConferencesList,
