@@ -545,6 +545,25 @@
                 </div>
                 <div id="conf-detail-sheet-id" class="md:col-span-8 p-4 sm:px-6 sm:py-5 bg-white flex items-center"></div>
               </div>
+
+              <!-- 9. Closed Status Banner (Shown when Conference is Closed) -->
+              <div id="conf-detail-closed-banner" class="hidden p-4 sm:px-6 sm:py-4 bg-rose-50 border-t border-rose-200 flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-rose-100 text-rose-600 flex items-center justify-center shrink-0">
+                  <i class="fa-solid fa-lock text-sm"></i>
+                </div>
+                <div>
+                  <span class="block text-xs sm:text-sm font-bold text-rose-900">Conference Permanently Closed</span>
+                  <p class="text-xs text-rose-700 mt-0.5">This conference is locked. No edits, paper reviews, or user assignments can be performed.</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Conference Details Bottom Action Bar (Left-Aligned Close Conference Button) -->
+            <div id="conf-details-footer-actions" class="px-4 sm:px-6 py-4 bg-slate-50 border-t border-slate-200/80 flex items-center justify-start">
+              <button id="conf-detail-close-btn" type="button" onclick="openCloseConferenceDialog()" class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs sm:text-sm font-semibold shadow-sm transition inline-flex items-center gap-2">
+                <i class="fa-solid fa-lock text-xs"></i>
+                <span>Close Conference</span>
+              </button>
             </div>
 
             <!-- Two-Pane Document Viewer Mode (Left Pane keeps File Cards; Right Pane opens Selected Document) -->
@@ -894,6 +913,58 @@
             <button id="app-confirm-accept-btn" type="button" onclick="acceptAppConfirmDialog()" class="px-5 py-2 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs sm:text-sm font-semibold shadow-sm transition flex items-center gap-1.5">
               <i id="app-confirm-accept-icon" class="fa-solid fa-check text-xs"></i>
               <span id="app-confirm-accept-label">Confirm</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- CLOSE CONFERENCE CONFIRMATION DIALOG ("I agree" VERIFICATION)         -->
+  <!-- ===================================================================== -->
+  <div id="close-conference-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm overflow-y-auto hidden">
+    <div class="flex min-h-full items-center justify-center p-4 sm:p-6">
+      <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-lg overflow-hidden">
+        <!-- Header -->
+        <div class="px-6 py-4 border-b border-rose-200 bg-rose-50 flex items-center justify-between gap-3">
+          <div class="flex items-center gap-3 min-w-0">
+            <div class="w-9 h-9 rounded-xl bg-rose-600 text-white flex items-center justify-center shrink-0">
+              <i class="fa-solid fa-triangle-exclamation text-base"></i>
+            </div>
+            <div class="min-w-0">
+              <h3 class="text-base font-bold text-rose-950 truncate">Close Conference Permanently</h3>
+              <p id="close-conf-modal-subtitle" class="text-xs text-rose-700 mt-0.5">Irreversible governance lock</p>
+            </div>
+          </div>
+          <button type="button" onclick="cancelCloseConferenceDialog()" class="w-8 h-8 rounded-lg text-rose-500 hover:text-rose-800 hover:bg-rose-100 flex items-center justify-center transition shrink-0">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <!-- Body -->
+        <div class="p-6 space-y-4">
+          <div class="p-4 rounded-xl bg-amber-50 border border-amber-200 text-xs sm:text-sm text-slate-800 leading-relaxed space-y-2">
+            <p class="font-bold text-slate-900">Important Notice:</p>
+            <p>
+              Once a conference is closed, <strong>no edit can be done</strong>, and <strong>no work on its papers, users, editors, reviewers, or authors can be done</strong>. It will be <strong>completely closed</strong>.
+            </p>
+          </div>
+
+          <div class="space-y-1.5">
+            <label for="close-conf-agree-input" class="block text-xs font-semibold text-slate-700">
+              Type <span class="font-mono font-bold text-rose-600 px-1.5 py-0.5 rounded bg-rose-50 border border-rose-200">I agree</span> below to confirm your understanding:
+            </label>
+            <input id="close-conf-agree-input" type="text" autocomplete="off" oninput="handleCloseConferenceAgreeInput()" placeholder="Type I agree" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-rose-500">
+          </div>
+
+          <div class="pt-3 border-t border-slate-100 flex items-center justify-end gap-2.5">
+            <button type="button" onclick="cancelCloseConferenceDialog()" class="px-4 py-2 rounded-xl border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 text-xs sm:text-sm font-semibold transition">
+              Cancel
+            </button>
+            <button id="close-conf-confirm-btn" type="button" disabled onclick="confirmCloseConference()" class="px-5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed text-white text-xs sm:text-sm font-semibold shadow-sm transition flex items-center gap-1.5">
+              <i class="fa-solid fa-lock text-xs"></i>
+              <span>Close Conference</span>
             </button>
           </div>
         </div>
@@ -1450,6 +1521,7 @@
       const isGlobalAdmin = role === 'Super Admin' || userEmail === SUPER_ADMIN_EMAIL;
 
       return (state.conferences || []).filter(conf => {
+        if (conf.isClosed) return false;
         const isActive = !conf.endDate || conf.endDate >= todayISO;
         if (!isActive) return false;
         if (isGlobalAdmin) return true;
@@ -1786,14 +1858,23 @@
 
       const addConfHeaderBtn = document.getElementById('header-add-conference-btn');
       if (addConfHeaderBtn) {
-        if (tabId === 'conferences') addConfHeaderBtn.classList.remove('hidden');
-        else addConfHeaderBtn.classList.add('hidden');
+        if (tabId === 'conferences' && isCurrentUserConferenceAdmin()) {
+          addConfHeaderBtn.classList.remove('hidden');
+        } else {
+          addConfHeaderBtn.classList.add('hidden');
+        }
       }
 
       const editConfHeaderBtn = document.getElementById('header-edit-conference-btn');
       if (editConfHeaderBtn) {
-        if (tabId === 'conference-details') editConfHeaderBtn.classList.remove('hidden');
-        else editConfHeaderBtn.classList.add('hidden');
+        const selectedConf = tabId === 'conference-details'
+          ? (state.conferences || []).find(c => c.id === selectedConferenceId)
+          : null;
+        if (tabId === 'conference-details' && selectedConf && !selectedConf.isClosed) {
+          editConfHeaderBtn.classList.remove('hidden');
+        } else {
+          editConfHeaderBtn.classList.add('hidden');
+        }
       }
 
       const titleEl = document.getElementById('page-title');
@@ -2452,6 +2533,10 @@
     }
 
     function openAddConferenceModal() {
+      if (!isCurrentUserConferenceAdmin()) {
+        showToast('Only Admins can create a conference.', 'warning');
+        return;
+      }
       editingConferenceId = null;
       pendingConferenceDraft = null;
       const form = document.getElementById('add-conference-form');
@@ -2513,6 +2598,10 @@
 
     function handleAddConferenceDone(event) {
       event.preventDefault();
+      if (!isCurrentUserConferenceAdmin()) {
+        showToast('Only Admins can create a conference.', 'warning');
+        return;
+      }
       const errEl = document.getElementById('add-conference-error');
       const showError = (msg) => {
         if (!errEl) return;
@@ -2570,6 +2659,10 @@
 
     function openEditConferencePage(conf, returnTab = 'conferences') {
       if (!conf) return;
+      if (conf.isClosed) {
+        showToast('This conference is closed and cannot be edited.', 'warning');
+        return;
+      }
       editingConferenceId = conf.id;
       editConferenceReturnTab = returnTab;
       pendingConferenceDraft = null;
@@ -2705,6 +2798,11 @@
 
     function handleEditConferenceSubmit(event) {
       event.preventDefault();
+      const existingConf = (state.conferences || []).find(c => c.id === editingConferenceId);
+      if (existingConf && existingConf.isClosed) {
+        showToast('This conference is closed and cannot be edited.', 'warning');
+        return;
+      }
       const errEl = document.getElementById('edit-conference-error');
       const showError = (msg) => {
         if (!errEl) return;
@@ -2798,6 +2896,11 @@
     function confirmSaveConference() {
       if (!pendingConferenceDraft) return;
       const wasEditing = Boolean(editingConferenceId);
+      if (!wasEditing && !isCurrentUserConferenceAdmin()) {
+        pendingConferenceDraft = null;
+        showToast('Only Admins can create a conference.', 'warning');
+        return;
+      }
       const existingIdx = (state.conferences || []).findIndex(c => c.id === pendingConferenceDraft.id);
       let savedConf;
 
@@ -2852,7 +2955,89 @@
       if (!selectedConferenceId) return;
       const conf = (state.conferences || []).find(c => c.id === selectedConferenceId);
       if (!conf) return;
+      if (conf.isClosed) {
+        showToast('This conference is closed and cannot be edited.', 'warning');
+        return;
+      }
       openEditConferencePage(conf, 'conference-details');
+    }
+
+    function isCurrentUserConferenceAdmin() {
+      const role = state.activeRole || 'Super Admin';
+      const session = getActiveSessionInfo();
+      const userEmail = String(session.email || '').toLowerCase().trim();
+      return role === 'Super Admin' || role === 'Admin' || userEmail === SUPER_ADMIN_EMAIL;
+    }
+
+    function openCloseConferenceDialog() {
+      const conf = (state.conferences || []).find(c => c.id === selectedConferenceId);
+      if (!conf || conf.isClosed) return;
+      if (!isCurrentUserConferenceAdmin()) {
+        showToast('Only Admins can close a conference.', 'warning');
+        return;
+      }
+
+      const modal = document.getElementById('close-conference-modal');
+      const subtitleEl = document.getElementById('close-conf-modal-subtitle');
+      const inputEl = document.getElementById('close-conf-agree-input');
+      const confirmBtn = document.getElementById('close-conf-confirm-btn');
+      if (!modal) return;
+
+      if (subtitleEl) subtitleEl.textContent = conf.name || 'Irreversible governance lock';
+      if (inputEl) inputEl.value = '';
+      if (confirmBtn) confirmBtn.disabled = true;
+
+      modal.classList.remove('hidden');
+      if (inputEl) {
+        setTimeout(() => inputEl.focus(), 50);
+      }
+    }
+
+    function handleCloseConferenceAgreeInput() {
+      const inputEl = document.getElementById('close-conf-agree-input');
+      const confirmBtn = document.getElementById('close-conf-confirm-btn');
+      if (!inputEl || !confirmBtn) return;
+      confirmBtn.disabled = inputEl.value.trim() !== 'I agree';
+    }
+
+    function cancelCloseConferenceDialog() {
+      const modal = document.getElementById('close-conference-modal');
+      const inputEl = document.getElementById('close-conf-agree-input');
+      if (inputEl) inputEl.value = '';
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function confirmCloseConference() {
+      const conf = (state.conferences || []).find(c => c.id === selectedConferenceId);
+      const inputEl = document.getElementById('close-conf-agree-input');
+      if (!conf || !inputEl || inputEl.value.trim() !== 'I agree') return;
+      if (!isCurrentUserConferenceAdmin()) {
+        showToast('Only Admins can close a conference.', 'warning');
+        return;
+      }
+
+      const session = getActiveSessionInfo();
+      conf.isClosed = true;
+      conf.closedAt = Date.now();
+      conf.closedBy = session.email || 'admin';
+      conf.updatedAt = Date.now();
+
+      if (usersPageSelectedConferenceId === conf.id) {
+        usersPageSelectedConferenceId = null;
+      }
+      if (activeWorkspaceConferenceId === conf.id) {
+        activeWorkspaceConferenceId = null;
+        activeWorkspaceSection = null;
+      }
+      if (expandedSidebarConferenceId === conf.id) {
+        expandedSidebarConferenceId = null;
+      }
+
+      cancelCloseConferenceDialog();
+      syncConferenceToCloud(conf);
+      renderAll();
+      switchTab('conference-details');
+      showToast(`Conference "${conf.name}" has been permanently closed.`, 'info');
     }
 
     function getEmbeddableDocumentUrl(url) {
@@ -2889,10 +3074,29 @@
 
       const standardRows = document.getElementById('conf-details-standard-rows');
       const splitView = document.getElementById('conf-document-split-view');
+      const footerActionsEl = document.getElementById('conf-details-footer-actions');
+      const closeBtnEl = document.getElementById('conf-detail-close-btn');
+      const closedBannerEl = document.getElementById('conf-detail-closed-banner');
       const splitFilesLeft = document.getElementById('conf-detail-split-files-left');
       const viewerHeader = document.getElementById('conf-document-viewer-header');
       const viewerBody = document.getElementById('conf-document-viewer-body');
       const files = Array.isArray(conf.additionalFiles) ? conf.additionalFiles : [];
+      const isClosed = Boolean(conf.isClosed);
+      const canClose = !isClosed && isCurrentUserConferenceAdmin();
+
+      if (footerActionsEl) {
+        if (canClose) {
+          footerActionsEl.classList.remove('hidden');
+          if (closeBtnEl) closeBtnEl.classList.remove('hidden');
+        } else {
+          footerActionsEl.classList.add('hidden');
+        }
+      }
+
+      if (closedBannerEl) {
+        if (isClosed) closedBannerEl.classList.remove('hidden');
+        else closedBannerEl.classList.add('hidden');
+      }
 
       if (
         activeAdditionalFilePreviewIndex !== null &&
@@ -3109,7 +3313,7 @@
       const todayISO = getTodayISO();
 
       const filtered = (state.conferences || []).filter(conf => {
-        const isCompleted = Boolean(conf.endDate && conf.endDate < todayISO);
+        const isCompleted = Boolean(conf.isClosed || (conf.endDate && conf.endDate < todayISO));
         if (!showCompleted && isCompleted) return false;
         if (!searchQuery) return true;
         const hay = `${conf.name || ''} ${conf.description || ''} ${(conf.themes || []).join(' ')}`.toLowerCase();
@@ -3181,6 +3385,7 @@
       const todayISO = getTodayISO();
       const query = (document.getElementById('users-active-conf-search')?.value || '').trim().toLowerCase();
       const activeConfs = (state.conferences || []).filter(conf => {
+        if (conf.isClosed) return false;
         const isActive = !conf.endDate || conf.endDate >= todayISO;
         if (!isActive) return false;
         if (!query) return true;
@@ -3501,6 +3706,10 @@
       event.preventDefault();
       const conf = (state.conferences || []).find(c => c.id === usersPageSelectedConferenceId);
       if (!conf) return;
+      if (conf.isClosed) {
+        showToast('This conference is closed. No users can be added.', 'warning');
+        return;
+      }
 
       const errEl = document.getElementById('users-page-user-error');
       const showError = (msg) => {
@@ -3572,6 +3781,10 @@
     function removeUserFromConference(conferenceId, memberId) {
       const conf = (state.conferences || []).find(c => c.id === conferenceId);
       if (!conf) return;
+      if (conf.isClosed) {
+        showToast('This conference is closed. Team members cannot be modified.', 'warning');
+        return;
+      }
       const member = (conf.members || []).find(m => m.id === memberId);
       if (!member) return;
 
@@ -3764,6 +3977,10 @@
       closeAdditionalFilePreview,
       editConferenceById,
       editActiveConference,
+      openCloseConferenceDialog,
+      handleCloseConferenceAgreeInput,
+      cancelCloseConferenceDialog,
+      confirmCloseConference,
       renderConferencesList,
       renderUsersActiveConferences,
       selectConferenceForUsersPage,
