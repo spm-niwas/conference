@@ -63,6 +63,9 @@
             <span>Dashboard</span>
           </button>
 
+          <!-- Dynamic Active Conferences Navigation (Reviewers, Authors, Papers per Active Conference) -->
+          <div id="sidebar-active-conferences-nav" class="space-y-1.5"></div>
+
           <!-- Settings Menu (Visible ONLY to Super Admin & Admin; sub-items always visible) -->
           <div id="sidebar-settings-section" class="pt-3 mt-1.5 border-t border-slate-800/80 space-y-1">
             <div class="px-3.5 py-1.5 flex items-center gap-2.5 text-[11px] font-bold uppercase tracking-wider text-slate-400 select-none">
@@ -238,6 +241,11 @@
               Ready to build in upcoming steps: Reviewers evaluate their assigned manuscripts and submit structured scores.
             </p>
           </div>
+        </div>
+
+        <!-- VIEW 4B: CONFERENCE WORKSPACE (`conf-reviewers`, `conf-authors`, `conf-papers`) -->
+        <div id="view-conf-workspace" class="hidden space-y-6">
+          <div id="conf-workspace-container"></div>
         </div>
 
         <!-- VIEW 5A: CONFERENCE (`conferences` — Super Admin & Admin Only) -->
@@ -1002,6 +1010,9 @@
     let usersSubTab = 'added';
     let selectedReviewerIdForMapping = null;
     let addedUsersSort = { field: 'name', dir: 'asc' };
+    let activeWorkspaceConferenceId = null;
+    let activeWorkspaceSection = null; // 'editors' | 'reviewers' | 'authors' | 'papers'
+    let expandedSidebarConferenceIds = new Set();
 
     function saveState() {
       safeStorage.setItem(STORAGE_KEY, JSON.stringify({
@@ -1245,7 +1256,7 @@
         if (gate) gate.classList.remove('hidden');
         if (signInBtn) signInBtn.classList.remove('hidden');
         if (gearContainer) gearContainer.classList.add('hidden');
-        ['overview', 'conferences', 'users-permissions', 'conference-details', 'edit-conference'].forEach(id => {
+        ['overview', 'conferences', 'users-permissions', 'conference-details', 'edit-conference', 'conf-workspace'].forEach(id => {
           const el = document.getElementById(`view-${id}`);
           if (el) el.classList.add('hidden');
         });
@@ -1341,9 +1352,27 @@
         if (email === SUPER_ADMIN_EMAIL) {
           state.activeRole = 'Super Admin';
         } else {
-          const matched = getAllConferenceMembers().find(m => (m.email || '').toLowerCase() === email);
-          if (matched && ROLE_CONFIG[matched.role]) {
-            state.activeRole = matched.role;
+          let matchedRole = null;
+          let updatedAnyPhoto = false;
+          (state.conferences || []).forEach(conf => {
+            if (!Array.isArray(conf.members)) return;
+            conf.members.forEach(m => {
+              if ((m.email || '').toLowerCase() === email) {
+                if (!matchedRole && ROLE_CONFIG[m.role]) {
+                  matchedRole = m.role;
+                }
+                if (user.photoURL && m.photoURL !== user.photoURL) {
+                  m.photoURL = user.photoURL;
+                  updatedAnyPhoto = true;
+                }
+              }
+            });
+            if (updatedAnyPhoto) {
+              syncConferenceToCloud(conf);
+            }
+          });
+          if (matchedRole) {
+            state.activeRole = matchedRole;
           } else {
             showToast('Signed in Google account is not yet assigned to a conference.', 'warning');
           }
@@ -1390,13 +1419,274 @@
       nav.classList.toggle('flex');
     }
 
+    function getAccessibleActiveConferences() {
+      const todayISO = getTodayISO();
+      const role = state.activeRole || 'Super Admin';
+      const session = getActiveSessionInfo();
+      const userEmail = String(session.email || '').toLowerCase().trim();
+      const isGlobalAdmin = role === 'Super Admin' || userEmail === SUPER_ADMIN_EMAIL;
+
+      return (state.conferences || []).filter(conf => {
+        const isActive = !conf.endDate || conf.endDate >= todayISO;
+        if (!isActive) return false;
+        if (isGlobalAdmin) return true;
+        const members = Array.isArray(conf.members) ? conf.members : [];
+        return members.some(m => String(m.email || '').toLowerCase().trim() === userEmail);
+      });
+    }
+
+    function getAllowedSectionsForConference(conf) {
+      const role = state.activeRole || 'Super Admin';
+      const session = getActiveSessionInfo();
+      const userEmail = String(session.email || '').toLowerCase().trim();
+      if (role === 'Super Admin' || role === 'Admin' || userEmail === SUPER_ADMIN_EMAIL) {
+        return ['editors', 'reviewers', 'authors', 'papers'];
+      }
+      const member = (Array.isArray(conf?.members) ? conf.members : []).find(
+        m => String(m.email || '').toLowerCase().trim() === userEmail
+      );
+      const effectiveRole = member ? member.role : role;
+      if (effectiveRole === 'Reviewer') {
+        return ['papers'];
+      }
+      return ['editors', 'reviewers', 'authors', 'papers'];
+    }
+
+    function toggleSidebarConferenceGroup(conferenceId) {
+      if (expandedSidebarConferenceIds.has(conferenceId)) {
+        expandedSidebarConferenceIds.delete(conferenceId);
+      } else {
+        expandedSidebarConferenceIds.add(conferenceId);
+      }
+      renderSidebarActiveConferences();
+    }
+
+    function openConferenceWorkspaceSection(conferenceId, section) {
+      const activeConfs = getAccessibleActiveConferences();
+      const conf = activeConfs.find(c => c.id === conferenceId);
+      if (!conf) return;
+
+      const allowed = getAllowedSectionsForConference(conf);
+      const targetSection = allowed.includes(section) ? section : allowed[0];
+      if (!targetSection) return;
+
+      activeWorkspaceConferenceId = conferenceId;
+      activeWorkspaceSection = targetSection;
+      expandedSidebarConferenceIds.add(conferenceId);
+      switchTab(`conf-${targetSection}`);
+    }
+
+    function renderSidebarActiveConferences() {
+      const container = document.getElementById('sidebar-active-conferences-nav');
+      if (!container) return;
+
+      if (!state.isLoggedIn) {
+        container.innerHTML = '';
+        return;
+      }
+
+      const activeConfs = getAccessibleActiveConferences();
+      if (activeConfs.length === 0) {
+        container.innerHTML = '';
+        return;
+      }
+
+      const sectionMeta = {
+        editors: { label: 'Editors', icon: 'fa-user-tie' },
+        reviewers: { label: 'Reviewers', icon: 'fa-user-check' },
+        authors: { label: 'Authors', icon: 'fa-user-pen' },
+        papers: { label: 'Papers', icon: 'fa-file-lines' }
+      };
+
+      container.innerHTML = activeConfs.map(conf => {
+        const isCurrentConf = currentTab.startsWith('conf-') && activeWorkspaceConferenceId === conf.id;
+        const isExpanded = expandedSidebarConferenceIds.has(conf.id) || isCurrentConf;
+        const allowedSections = getAllowedSectionsForConference(conf);
+
+        const subItemsHtml = isExpanded ? `
+          <div class="pl-3 mt-1 space-y-1 border-l border-slate-800 ml-3">
+            ${allowedSections.map(sec => {
+              const meta = sectionMeta[sec];
+              const isSelected = isCurrentConf && activeWorkspaceSection === sec;
+              return `
+                <button type="button" onclick="openConferenceWorkspaceSection('${escapeHtml(conf.id)}', '${sec}')" class="w-full flex items-center gap-2.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-all ${isSelected ? 'bg-slate-800 text-white shadow-sm' : 'text-slate-300 hover:bg-slate-800 hover:text-white'}">
+                  <i class="fa-solid ${meta.icon} w-3.5 text-center text-[11px]"></i>
+                  <span>${meta.label}</span>
+                </button>
+              `;
+            }).join('')}
+          </div>
+        ` : '';
+
+        return `
+          <div class="pt-2 border-t border-slate-800/80">
+            <button type="button" onclick="toggleSidebarConferenceGroup('${escapeHtml(conf.id)}')" class="w-full flex items-center justify-between gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all ${isCurrentConf ? 'text-white bg-slate-800/60' : 'text-slate-300 hover:bg-slate-800/60 hover:text-white'}">
+              <span class="flex items-center gap-2.5 min-w-0">
+                <i class="fa-solid fa-calendar-check w-4 text-center text-emerald-400 shrink-0"></i>
+                <span class="truncate">${escapeHtml(conf.name)}</span>
+              </span>
+              <i class="fa-solid fa-chevron-${isExpanded ? 'down' : 'right'} text-[10px] text-slate-400 shrink-0"></i>
+            </button>
+            ${subItemsHtml}
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderConferenceWorkspaceView() {
+      const container = document.getElementById('conf-workspace-container');
+      if (!container) return;
+
+      const conf = getAccessibleActiveConferences().find(c => c.id === activeWorkspaceConferenceId);
+      if (!conf) {
+        container.innerHTML = `
+          <div class="bg-white rounded-2xl border border-dashed border-slate-300 p-8 text-center space-y-2">
+            <h3 class="text-base font-bold text-slate-900">Active Conference Unavailable</h3>
+            <p class="text-xs sm:text-sm text-slate-500">This conference is no longer active or you do not have access to it.</p>
+          </div>
+        `;
+        return;
+      }
+
+      const section = activeWorkspaceSection || 'papers';
+      const members = Array.isArray(conf.members) ? conf.members : [];
+      const editors = members.filter(m => m.role === 'Editorial Member');
+      const reviewers = members.filter(m => m.role === 'Reviewer');
+      const authors = Array.isArray(conf.authors) ? conf.authors : [];
+      const papers = Array.isArray(conf.papers) ? conf.papers : [];
+
+      if (section === 'editors') {
+        if (editors.length === 0) {
+          container.innerHTML = `
+            <div class="bg-white rounded-2xl border border-slate-200/80 p-8 text-center">
+              <p class="text-xs sm:text-sm text-slate-500">No editors have been added in Users for this conference yet.</p>
+            </div>
+          `;
+          return;
+        }
+        container.innerHTML = `
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            ${editors.map(ed => {
+              const displayName = String(ed.name || ed.email || 'Editor').trim();
+              const displayDesignation = String(ed.designation || '').trim();
+              const initials = getInitials(displayName);
+              const photoHtml = ed.photoURL
+                ? `<img src="${escapeHtml(ed.photoURL)}" alt="${escapeHtml(displayName)}" referrerpolicy="no-referrer" onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');" class="w-12 h-12 rounded-full object-cover border border-slate-200 shrink-0"><div class="hidden w-12 h-12 rounded-full bg-slate-800 text-white font-bold text-sm flex items-center justify-center shrink-0">${escapeHtml(initials)}</div>`
+                : `<div class="w-12 h-12 rounded-full bg-slate-800 text-white font-bold text-sm flex items-center justify-center shrink-0">${escapeHtml(initials)}</div>`;
+              return `
+                <div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-xs flex items-center gap-4">
+                  ${photoHtml}
+                  <div class="min-w-0 flex-1 space-y-0.5">
+                    <h4 class="text-sm font-bold text-slate-900 leading-snug">${escapeHtml(displayName)}</h4>
+                    ${displayDesignation ? `<p class="text-xs font-medium text-slate-600 leading-snug">${escapeHtml(displayDesignation)}</p>` : ''}
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        `;
+      } else if (section === 'reviewers') {
+        if (reviewers.length === 0) {
+          container.innerHTML = `
+            <div class="bg-white rounded-2xl border border-slate-200/80 p-8 text-center">
+              <p class="text-xs sm:text-sm text-slate-500">No reviewers have been added in Users for this conference yet.</p>
+            </div>
+          `;
+          return;
+        }
+        container.innerHTML = `
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            ${reviewers.map(rev => {
+              const displayName = String(rev.name || rev.email || 'Reviewer').trim();
+              const displayDesignation = String(rev.designation || '').trim();
+              const themes = Array.isArray(rev.themes) ? rev.themes.filter(Boolean) : [];
+              const initials = getInitials(displayName);
+              const photoHtml = rev.photoURL
+                ? `<img src="${escapeHtml(rev.photoURL)}" alt="${escapeHtml(displayName)}" referrerpolicy="no-referrer" onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');" class="w-12 h-12 rounded-full object-cover border border-slate-200 shrink-0"><div class="hidden w-12 h-12 rounded-full bg-slate-800 text-white font-bold text-sm flex items-center justify-center shrink-0">${escapeHtml(initials)}</div>`
+                : `<div class="w-12 h-12 rounded-full bg-slate-800 text-white font-bold text-sm flex items-center justify-center shrink-0">${escapeHtml(initials)}</div>`;
+              const themesHtml = themes.length > 0
+                ? `<div class="pt-2.5 flex flex-wrap gap-1.5">${themes.map(t => `<span class="px-2.5 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200 text-[11px] font-medium leading-snug">${escapeHtml(t)}</span>`).join('')}</div>`
+                : `<p class="pt-1.5 text-[11px] text-slate-400">No themes tagged</p>`;
+              return `
+                <div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-xs flex items-start gap-4">
+                  ${photoHtml}
+                  <div class="min-w-0 flex-1 space-y-1">
+                    <h4 class="text-sm font-bold text-slate-900 leading-snug">${escapeHtml(displayName)}</h4>
+                    ${displayDesignation ? `<p class="text-xs font-medium text-slate-600 leading-snug">${escapeHtml(displayDesignation)}</p>` : ''}
+                    ${themesHtml}
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        `;
+      } else if (section === 'authors') {
+        if (authors.length === 0) {
+          container.innerHTML = `
+            <div class="bg-white rounded-2xl border border-slate-200/80 p-8 text-center">
+              <p class="text-xs sm:text-sm text-slate-500">No authors have been imported for this conference yet.</p>
+            </div>
+          `;
+          return;
+        }
+        container.innerHTML = `
+          <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+            <div class="px-5 sm:px-6 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between gap-3">
+              <h3 class="text-sm font-bold text-slate-900">Authors (${authors.length})</h3>
+            </div>
+            <div class="p-4 sm:p-6 space-y-2">
+              ${authors.map(a => `
+                <div class="px-4 py-3 rounded-xl border border-slate-200 text-xs sm:text-sm text-slate-800">
+                  <span class="font-bold">${escapeHtml(a.name || a.email || 'Author')}</span>
+                  ${a.email ? `<span class="text-slate-500 ml-2">${escapeHtml(a.email)}</span>` : ''}
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      } else {
+        if (papers.length === 0) {
+          container.innerHTML = `
+            <div class="bg-white rounded-2xl border border-slate-200/80 p-8 text-center">
+              <p class="text-xs sm:text-sm text-slate-500">No papers have been imported for this conference yet.</p>
+            </div>
+          `;
+          return;
+        }
+        container.innerHTML = `
+          <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+            <div class="px-5 sm:px-6 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between gap-3">
+              <h3 class="text-sm font-bold text-slate-900">Papers (${papers.length})</h3>
+            </div>
+            <div class="p-4 sm:p-6 space-y-2">
+              ${papers.map(p => `
+                <div class="px-4 py-3 rounded-xl border border-slate-200 text-xs sm:text-sm text-slate-800">
+                  <span class="font-bold">${escapeHtml(p.title || 'Untitled Paper')}</span>
+                  ${p.author ? `<span class="text-slate-500 ml-2">&mdash; ${escapeHtml(p.author)}</span>` : ''}
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }
+    }
+
     function renderBreadcrumb(tabId) {
       const nav = document.getElementById('page-breadcrumb');
       if (!nav) return;
 
       const items = [{ label: 'Dashboard', action: "switchTab('overview')" }];
-
-      if (tabId === 'conferences') {
+      if (tabId === 'conf-editors' || tabId === 'conf-reviewers' || tabId === 'conf-authors' || tabId === 'conf-papers') {
+        const conf = (state.conferences || []).find(c => c.id === activeWorkspaceConferenceId);
+        const labelMap = {
+          'conf-editors': 'Editors',
+          'conf-reviewers': 'Reviewers',
+          'conf-authors': 'Authors',
+          'conf-papers': 'Papers'
+        };
+        items.push({ label: conf ? conf.name : 'Conference', action: null });
+        items.push({ label: labelMap[tabId] || 'Workspace', action: null });
+      } else if (tabId === 'conferences') {
         items.push({ label: 'Settings', action: "switchTab('conferences')" });
         items.push({ label: 'Conference', action: null });
       } else if (tabId === 'users-permissions') {
@@ -1444,16 +1734,21 @@
 
       currentTab = tabId;
 
-      const views = ['overview', 'papers', 'desk', 'reviews', 'conferences', 'users-permissions', 'conference-details', 'edit-conference'];
+      const isConfWorkspaceTab = tabId === 'conf-editors' || tabId === 'conf-reviewers' || tabId === 'conf-authors' || tabId === 'conf-papers';
+      const activeViewId = isConfWorkspaceTab ? 'conf-workspace' : tabId;
+
+      const views = ['overview', 'papers', 'desk', 'reviews', 'conf-workspace', 'conferences', 'users-permissions', 'conference-details', 'edit-conference'];
       views.forEach(v => {
         const el = document.getElementById(`view-${v}`);
         if (el) {
-          if (v === tabId) el.classList.remove('hidden');
+          if (v === activeViewId) el.classList.remove('hidden');
           else el.classList.add('hidden');
         }
       });
 
-      const activeNavTab = (tabId === 'conference-details' || tabId === 'edit-conference') ? 'conferences' : tabId;
+      const activeNavTab = isConfWorkspaceTab
+        ? ''
+        : ((tabId === 'conference-details' || tabId === 'edit-conference') ? 'conferences' : tabId);
       document.querySelectorAll('.nav-tab').forEach(btn => {
         const isTarget = btn.getAttribute('data-tab') === activeNavTab;
         if (isTarget) {
@@ -1464,6 +1759,7 @@
           btn.classList.add('text-slate-300');
         }
       });
+      renderSidebarActiveConferences();
 
       const addConfHeaderBtn = document.getElementById('header-add-conference-btn');
       if (addConfHeaderBtn) {
@@ -1479,7 +1775,17 @@
 
       const titleEl = document.getElementById('page-title');
       const subEl = document.getElementById('page-subtitle');
-      if (tabId === 'overview') {
+      if (isConfWorkspaceTab) {
+        const sectionTitle = {
+          'conf-editors': 'Editors',
+          'conf-reviewers': 'Reviewers',
+          'conf-authors': 'Authors',
+          'conf-papers': 'Papers'
+        }[tabId] || 'Workspace';
+        if (titleEl) titleEl.textContent = sectionTitle;
+        if (subEl) subEl.textContent = `Active conference ${sectionTitle.toLowerCase()} management and review workflow.`;
+        renderConferenceWorkspaceView();
+      } else if (tabId === 'overview') {
         if (titleEl) titleEl.textContent = 'Dashboard';
         if (subEl) subEl.textContent = 'Internal screening, editorial distribution & peer review governance.';
       } else if (tabId === 'conferences') {
@@ -1972,6 +2278,10 @@
     function extractGoogleSheetId(rawValue) {
       const trimmed = String(rawValue || '').trim();
       if (!trimmed) return '';
+      // Reject accidental HTML / markup paste
+      if (trimmed.includes('<') || trimmed.includes('>') || trimmed.length > 300) {
+        return '';
+      }
       const urlMatch = trimmed.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
       if (urlMatch && urlMatch[1]) return urlMatch[1];
       return trimmed;
@@ -1983,8 +2293,22 @@
       const hintEl = document.getElementById('edit-conf-sheet-id-hint');
       if (!inputEl) return;
 
-      const extracted = extractGoogleSheetId(inputEl.value);
-      if (extracted && extracted !== inputEl.value.trim()) {
+      const rawVal = inputEl.value.trim();
+      const isInvalidPaste = rawVal.includes('<') || rawVal.includes('>') || rawVal.length > 300;
+      const extracted = extractGoogleSheetId(rawVal);
+
+      if (isInvalidPaste) {
+        inputEl.value = '';
+        if (linkEl) linkEl.classList.add('hidden');
+        if (hintEl) {
+          hintEl.className = 'text-[11px] font-medium text-rose-600';
+          hintEl.textContent = 'Invalid paste detected (looks like HTML code). Please copy and paste only the Google Sheet URL or Sheet ID.';
+        }
+        markEditConferenceDirty();
+        return;
+      }
+
+      if (extracted && extracted !== rawVal) {
         inputEl.value = extracted;
       }
 
@@ -1998,6 +2322,7 @@
       }
 
       if (hintEl) {
+        hintEl.className = 'text-[11px] text-slate-500';
         hintEl.textContent = extracted
           ? `Connected Sheet ID: ${extracted} — Form columns and Drive uploads are auto-detected from Row 1 headers.`
           : 'Form columns and Drive uploads are auto-detected from Row 1 headers.';
@@ -3241,6 +3566,7 @@
       if (usersBadge) usersBadge.textContent = String(getTotalUniqueConferenceUsersCount());
 
       renderAccountUI();
+      renderSidebarActiveConferences();
       renderConferencesList();
       renderUsersActiveConferences();
       if (usersPageSelectedConferenceId) {
@@ -3249,11 +3575,16 @@
       if (currentTab === 'conference-details' && selectedConferenceId) {
         renderConferenceDetailsView();
       }
+      if (currentTab === 'conf-editors' || currentTab === 'conf-reviewers' || currentTab === 'conf-authors' || currentTab === 'conf-papers') {
+        renderConferenceWorkspaceView();
+      }
     }
 
     Object.assign(window, {
       toggleMobileNav,
       switchTab,
+      toggleSidebarConferenceGroup,
+      openConferenceWorkspaceSection,
       toggleAccountMenu,
       signInWithGoogleAccount,
       signOutGoogleAccount,
