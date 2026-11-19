@@ -66,7 +66,7 @@
           <!-- Dynamic Active Conferences Navigation (Reviewers, Authors, Papers per Active Conference) -->
           <div id="sidebar-active-conferences-nav" class="space-y-1.5"></div>
 
-          <!-- Settings Menu (Visible ONLY to Super Admin & Admin; sub-items always visible) -->
+          <!-- Settings Menu (Visible ONLY to Admin users & hardcoded director@spmniwas.in) -->
           <div id="sidebar-settings-section" class="pt-3 mt-1.5 border-t border-slate-800/80 space-y-1">
             <div class="px-3.5 py-1.5 flex items-center gap-2.5 text-[11px] font-bold uppercase tracking-wider text-slate-400 select-none">
               <i class="fa-solid fa-gear w-4 text-center text-slate-400"></i>
@@ -1001,7 +1001,7 @@
       'Super Admin': {
         badgeClass: 'bg-slate-100 text-slate-800 border border-slate-200',
         canAccessSettings: true,
-        note: 'Hardcoded Super Admin'
+        note: 'Hardcoded System Account (director@spmniwas.in)'
       },
       'Admin': {
         badgeClass: 'bg-slate-100 text-slate-700 border border-slate-200',
@@ -1022,6 +1022,11 @@
         badgeClass: 'bg-slate-100 text-slate-700 border border-slate-200',
         canAccessSettings: false,
         note: 'Peer Reviewer'
+      },
+      'Guest': {
+        badgeClass: 'bg-slate-100 text-slate-600 border border-slate-200',
+        canAccessSettings: false,
+        note: 'Unassigned Account'
       }
     };
 
@@ -1062,15 +1067,54 @@
         const raw = safeStorage.getItem(STORAGE_KEY);
         if (!raw) return JSON.parse(JSON.stringify(DEFAULT_STATE));
         const parsed = JSON.parse(raw);
+        const loadedRole = ROLE_CONFIG[parsed.activeRole] ? parsed.activeRole : 'Super Admin';
         return {
           isLoggedIn: parsed.isLoggedIn !== undefined ? Boolean(parsed.isLoggedIn) : true,
-          activeRole: ROLE_CONFIG[parsed.activeRole] ? parsed.activeRole : 'Super Admin',
+          activeRole: loadedRole,
           users: [],
           conferences: Array.isArray(parsed.conferences) ? parsed.conferences : []
         };
       } catch {
         return JSON.parse(JSON.stringify(DEFAULT_STATE));
       }
+    }
+
+    function isHardcodedSuperAdminSession() {
+      if (currentGoogleUser && currentGoogleUser.email) {
+        return String(currentGoogleUser.email).toLowerCase().trim() === SUPER_ADMIN_EMAIL;
+      }
+      return state.activeRole === 'Super Admin';
+    }
+
+    function resolveEffectiveUserRole() {
+      if (currentGoogleUser && currentGoogleUser.email) {
+        const email = String(currentGoogleUser.email).toLowerCase().trim();
+        if (email === SUPER_ADMIN_EMAIL) return 'Super Admin';
+
+        const matchedRoles = [];
+        (state.conferences || []).forEach(conf => {
+          if (conf.isClosed || !Array.isArray(conf.members)) return;
+          conf.members.forEach(m => {
+            if (String(m.email || '').toLowerCase().trim() === email && m.role && m.role !== 'Super Admin') {
+              matchedRoles.push(m.role);
+            }
+          });
+        });
+
+        if (matchedRoles.includes('Admin')) return 'Admin';
+        if (matchedRoles.includes('Editorial Member')) return 'Editorial Member';
+        if (matchedRoles.includes('Scrutinizer')) return 'Scrutinizer';
+        if (matchedRoles.includes('Reviewer')) return 'Reviewer';
+        return 'Guest';
+      }
+
+      if (state.activeRole === 'Super Admin') return 'Super Admin';
+      return ROLE_CONFIG[state.activeRole] && state.activeRole !== 'Super Admin' ? state.activeRole : 'Guest';
+    }
+
+    function canCurrentUserAccessSettings() {
+      const effectiveRole = resolveEffectiveUserRole();
+      return effectiveRole === 'Admin' || isHardcodedSuperAdminSession();
     }
 
     function getAllConferenceMembers() {
@@ -1293,14 +1337,24 @@
     }
 
     function getActiveSessionInfo() {
-      const role = state.activeRole || 'Super Admin';
+      const role = resolveEffectiveUserRole();
       if (currentGoogleUser && currentGoogleUser.email) {
+        const email = String(currentGoogleUser.email).toLowerCase().trim();
+        if (email === SUPER_ADMIN_EMAIL) {
+          return {
+            name: currentGoogleUser.name || 'Director (Super Admin)',
+            designation: 'Conference Director',
+            email: SUPER_ADMIN_EMAIL,
+            photoURL: currentGoogleUser.photoURL || '',
+            role: 'Super Admin'
+          };
+        }
         const matchedMember = getAllConferenceMembers().find(
-          m => (m.email || '').toLowerCase() === currentGoogleUser.email.toLowerCase()
+          m => (m.email || '').toLowerCase().trim() === email
         );
         return {
           name: currentGoogleUser.name || (matchedMember ? matchedMember.name : currentGoogleUser.email),
-          designation: matchedMember && matchedMember.designation ? matchedMember.designation : (role === 'Super Admin' ? 'Conference Director' : role),
+          designation: matchedMember && matchedMember.designation ? matchedMember.designation : role,
           email: currentGoogleUser.email,
           photoURL: currentGoogleUser.photoURL || '',
           role
@@ -1362,10 +1416,11 @@
       if (gearContainer) gearContainer.classList.remove('hidden');
 
       const session = getActiveSessionInfo();
-      const roleMeta = ROLE_CONFIG[session.role] || ROLE_CONFIG['Super Admin'];
+      const roleMeta = ROLE_CONFIG[session.role] || ROLE_CONFIG['Guest'];
+      const hasSettingsAccess = canCurrentUserAccessSettings();
 
       if (settingsSection) {
-        if (roleMeta.canAccessSettings) {
+        if (hasSettingsAccess) {
           settingsSection.classList.remove('hidden');
         } else {
           settingsSection.classList.add('hidden');
@@ -1407,9 +1462,9 @@
       if (curRole) curRole.textContent = session.role;
       if (roleNote) roleNote.textContent = roleMeta.note;
       if (settingsAccess) {
-        settingsAccess.textContent = roleMeta.canAccessSettings
-          ? 'Enabled — Settings → Conference & Users & Permissions are visible in the left sidebar.'
-          : 'Restricted — Settings menu is reserved for Super Admin & Admin accounts.';
+        settingsAccess.textContent = hasSettingsAccess
+          ? 'Enabled — Settings → Conference & Users & Permissions are accessible.'
+          : 'Restricted — Settings is available exclusively to Admin users.';
       }
     }
 
@@ -1446,14 +1501,14 @@
         if (email === SUPER_ADMIN_EMAIL) {
           state.activeRole = 'Super Admin';
         } else {
-          let matchedRole = null;
           let updatedAnyPhoto = false;
           (state.conferences || []).forEach(conf => {
             if (!Array.isArray(conf.members)) return;
             conf.members.forEach(m => {
-              if ((m.email || '').toLowerCase() === email) {
-                if (!matchedRole && ROLE_CONFIG[m.role]) {
-                  matchedRole = m.role;
+              if ((m.email || '').toLowerCase().trim() === email) {
+                if (m.role === 'Super Admin') {
+                  m.role = 'Admin';
+                  updatedAnyPhoto = true;
                 }
                 if (user.photoURL && m.photoURL !== user.photoURL) {
                   m.photoURL = user.photoURL;
@@ -1465,9 +1520,9 @@
               syncConferenceToCloud(conf);
             }
           });
-          if (matchedRole) {
-            state.activeRole = matchedRole;
-          } else {
+          const resolvedRole = resolveEffectiveUserRole();
+          state.activeRole = resolvedRole;
+          if (resolvedRole === 'Guest') {
             showToast('Signed in Google account is not yet assigned to a conference.', 'warning');
           }
         }
@@ -1822,8 +1877,8 @@
         return;
       }
 
-      const roleMeta = ROLE_CONFIG[state.activeRole] || ROLE_CONFIG['Super Admin'];
-      if ((tabId === 'conferences' || tabId === 'users-permissions' || tabId === 'conference-details' || tabId === 'edit-conference') && !roleMeta.canAccessSettings) {
+      const hasSettingsAccess = canCurrentUserAccessSettings();
+      if ((tabId === 'conferences' || tabId === 'users-permissions' || tabId === 'conference-details' || tabId === 'edit-conference') && !hasSettingsAccess) {
         tabId = 'overview';
       }
 
@@ -3704,6 +3759,10 @@
 
     function handleAddUserFromUsersPage(event) {
       event.preventDefault();
+      if (!canCurrentUserAccessSettings()) {
+        showToast('Only Admin users can manage conference users.', 'warning');
+        return;
+      }
       const conf = (state.conferences || []).find(c => c.id === usersPageSelectedConferenceId);
       if (!conf) return;
       if (conf.isClosed) {
@@ -3727,13 +3786,9 @@
       const name = nameInput.value.trim();
       const designation = desigInput.value.trim();
       const email = document.getElementById('users-page-user-email').value.trim().toLowerCase();
-      const role = document.getElementById('users-page-user-role').value;
-
-      if (!name) return showError('Please enter the user Name.');
-      if (!designation) return showError('Please enter the user Designation.');
-      if (!isValidGoogleMail(email)) {
-        return showError('Please enter a valid Google Mail address (@gmail.com or @googlemail.com).');
-      }
+      const rawRole = document.getElementById('users-page-user-role').value;
+      const allowedAssignableRoles = ['Admin', 'Scrutinizer', 'Editorial Member', 'Reviewer'];
+      const role = allowedAssignableRoles.includes(rawRole) ? rawRole : 'Reviewer';
 
       const members = Array.isArray(conf.members) ? conf.members : [];
       if (members.some(m => (m.email || '').toLowerCase() === email)) {
