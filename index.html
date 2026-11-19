@@ -911,6 +911,28 @@
 
           <p id="add-conference-error" class="hidden text-xs font-medium text-rose-600 bg-rose-50 border border-rose-200 rounded-xl px-3.5 py-2"></p>
 
+          <!-- Add Conference Admin Section -->
+          <div class="pt-3 border-t border-slate-200/80 space-y-3">
+            <div>
+              <h4 class="text-xs sm:text-sm font-bold text-slate-900">Add Conference Admin</h4>
+              <p class="text-[11px] text-slate-500 mt-0.5">Assign the primary Conference Admin who will manage this conference.</p>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+              <div>
+                <label for="conf-admin-name-input" class="block text-xs font-semibold text-slate-700 mb-1.5">
+                  Name <span class="text-rose-500">*</span>
+                </label>
+                <input id="conf-admin-name-input" type="text" required oninput="formatTitleCaseInput(this)" placeholder="Dr. Ananya Sen" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              </div>
+              <div>
+                <label for="conf-admin-email-input" class="block text-xs font-semibold text-slate-700 mb-1.5">
+                  Google Mail / Workspace Email <span class="text-rose-500">*</span>
+                </label>
+                <input id="conf-admin-email-input" type="email" required placeholder="ananya@gmail.com or name@domain.org" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              </div>
+            </div>
+          </div>
+
           <div class="pt-3 border-t border-slate-100 flex items-center justify-end gap-2.5">
             <button type="button" onclick="closeAddConferenceModal()" class="px-4 py-2 rounded-xl border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 text-xs sm:text-sm font-semibold transition">
               Cancel
@@ -1195,9 +1217,33 @@
       return effectiveRole === 'Conference Admin' || effectiveRole === 'System Admin' || isHardcodedSuperAdminSession();
     }
 
+    function canCurrentUserManageSystemAdmins() {
+      const role = normalizeRoleName(resolveEffectiveUserRole() || '');
+      const session = getActiveSessionInfo();
+      const userEmail = String(session.email || '').toLowerCase().trim();
+      return role === 'Super Admin' || role === 'System Admin' || userEmail === SUPER_ADMIN_EMAIL || isEmailSystemAdmin(userEmail);
+    }
+
+    function canCurrentUserManageConference(conf) {
+      if (!conf) return false;
+      if (canCurrentUserManageSystemAdmins()) return true;
+      const session = getActiveSessionInfo();
+      const userEmail = String(session.email || '').toLowerCase().trim();
+      if (!userEmail) return false;
+      return (Array.isArray(conf.members) ? conf.members : []).some(
+        m => String(m.email || '').toLowerCase().trim() === userEmail && normalizeRoleName(m.role) === 'Conference Admin'
+      );
+    }
+
+    function getManageableConferences() {
+      const allConfs = Array.isArray(state.conferences) ? state.conferences : [];
+      if (canCurrentUserManageSystemAdmins()) return allConfs;
+      return allConfs.filter(conf => canCurrentUserManageConference(conf));
+    }
+
     function getAllConferenceMembers() {
       const members = [];
-      (state.conferences || []).forEach(conf => {
+      getManageableConferences().forEach(conf => {
         if (Array.isArray(conf.members)) {
           conf.members.forEach(m => members.push(m));
         }
@@ -1517,6 +1563,7 @@
       const signInBtn = document.getElementById('google-signin-btn');
       const gearContainer = document.getElementById('account-gear-container');
       const settingsSection = document.getElementById('sidebar-settings-section');
+      const sysAdminTabBtn = document.querySelector('[data-tab="system-admin"]');
 
       const allViews = ['overview', 'papers', 'desk', 'reviews', 'conf-workspace', 'conferences', 'users-permissions', 'system-admin', 'conference-details', 'edit-conference'];
       const authorized = hasAuthorizedPortalAccess();
@@ -1526,6 +1573,14 @@
           settingsSection.classList.remove('hidden');
         } else {
           settingsSection.classList.add('hidden');
+        }
+      }
+
+      if (sysAdminTabBtn) {
+        if (authorized && canCurrentUserManageSystemAdmins()) {
+          sysAdminTabBtn.classList.remove('hidden');
+        } else {
+          sysAdminTabBtn.classList.add('hidden');
         }
       }
 
@@ -1618,14 +1673,18 @@
       if (ovNote) ovNote.textContent = roleMeta.note;
       if (ovCurrentRole) ovCurrentRole.textContent = effectiveRole;
       if (ovSettings) {
-        ovSettings.textContent = canCurrentUserAccessSettings()
-          ? 'You have administrative access to Settings (Conference, Users & Permissions, and System Admin).'
-          : 'Select an active conference from the left menu to access your assigned workspace.';
+        if (canCurrentUserManageSystemAdmins()) {
+          ovSettings.textContent = 'You have system-wide administrative access to Settings (Conference, Users & Permissions, and System Admin).';
+        } else if (effectiveRole === 'Conference Admin') {
+          ovSettings.textContent = 'You have Conference Admin powers for your assigned conference(s) under Settings (Conference and Users & Permissions).';
+        } else {
+          ovSettings.textContent = 'Select an active conference from the left menu to access your assigned workspace.';
+        }
       }
     }
 
     function removeSystemAdmin(sysAdminId) {
-      if (!canCurrentUserAccessSettings()) return;
+      if (!canCurrentUserManageSystemAdmins()) return;
       const target = (state.systemAdmins || []).find(sa => sa.id === sysAdminId);
       if (!target) return;
       openAppConfirmDialog({
@@ -1656,9 +1715,8 @@
     }
 
     function removeUserFromConference(conferenceId, memberId) {
-      if (!canCurrentUserAccessSettings()) return;
       const conf = (state.conferences || []).find(c => c.id === conferenceId);
-      if (!conf || conf.isClosed) return;
+      if (!conf || conf.isClosed || !canCurrentUserManageConference(conf)) return;
       const member = (conf.members || []).find(m => m.id === memberId);
       if (!member) return;
 
@@ -2169,6 +2227,9 @@
       if ((tabId === 'conferences' || tabId === 'users-permissions' || tabId === 'system-admin' || tabId === 'conference-details' || tabId === 'edit-conference') && !hasSettingsAccess) {
         tabId = 'overview';
       }
+      if (tabId === 'system-admin' && !canCurrentUserManageSystemAdmins()) {
+        tabId = 'conferences';
+      }
 
       currentTab = tabId;
 
@@ -2201,7 +2262,7 @@
 
       const addConfHeaderBtn = document.getElementById('header-add-conference-btn');
       if (addConfHeaderBtn) {
-        if (tabId === 'conferences' && isCurrentUserConferenceAdmin()) {
+        if (tabId === 'conferences' && canCurrentUserCreateConference()) {
           addConfHeaderBtn.classList.remove('hidden');
         } else {
           addConfHeaderBtn.classList.add('hidden');
@@ -2345,6 +2406,27 @@
 
     function isValidGoogleMail(email) {
       return /^[^\s@]+@(gmail\.com|googlemail\.com)$/i.test(String(email || '').trim());
+    }
+
+    function isValidGoogleOrCustomGmail(email) {
+      const cleaned = String(email || '').trim().toLowerCase();
+      if (!/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(cleaned)) return false;
+      const domain = cleaned.split('@')[1] || '';
+      const blockedConsumerProviders = new Set([
+        'yahoo.com', 'yahoo.in', 'yahoo.co.in', 'yahoo.co.uk',
+        'hotmail.com', 'outlook.com', 'live.com', 'msn.com',
+        'icloud.com', 'me.com', 'mac.com',
+        'aol.com', 'protonmail.com', 'proton.me', 'zoho.com', 'zohomail.in',
+        'rediffmail.com', 'yandex.com', 'gmx.com'
+      ]);
+      return !blockedConsumerProviders.has(domain);
+    }
+
+    function canCurrentUserCreateConference() {
+      const role = normalizeRoleName(resolveEffectiveUserRole() || '');
+      const session = getActiveSessionInfo();
+      const userEmail = String(session.email || '').toLowerCase().trim();
+      return role === 'Super Admin' || role === 'System Admin' || userEmail === SUPER_ADMIN_EMAIL || isEmailSystemAdmin(userEmail);
     }
 
     let editingConferenceId = null;
@@ -2880,8 +2962,8 @@
     }
 
     function openAddConferenceModal() {
-      if (!isCurrentUserConferenceAdmin()) {
-        showToast('Only Admins can create a conference.', 'warning');
+      if (!canCurrentUserCreateConference()) {
+        showToast('Only Super Admin and System Admins can create a conference.', 'warning');
         return;
       }
       editingConferenceId = null;
@@ -2945,8 +3027,8 @@
 
     function handleAddConferenceDone(event) {
       event.preventDefault();
-      if (!isCurrentUserConferenceAdmin()) {
-        showToast('Only Admins can create a conference.', 'warning');
+      if (!canCurrentUserCreateConference()) {
+        showToast('Only Super Admin and System Admins can create a conference.', 'warning');
         return;
       }
       const errEl = document.getElementById('add-conference-error');
@@ -2961,6 +3043,11 @@
       const description = document.getElementById('conf-desc-input').value.trim();
       const startDate = document.getElementById('conf-start-date').value;
       const endDate = document.getElementById('conf-end-date').value;
+      const adminNameInput = document.getElementById('conf-admin-name-input');
+      const adminEmailInput = document.getElementById('conf-admin-email-input');
+      if (adminNameInput) formatTitleCaseInput(adminNameInput);
+      const adminName = (adminNameInput?.value || '').trim();
+      const adminEmail = (adminEmailInput?.value || '').trim().toLowerCase();
 
       if (!name) return showError('Please enter the Conference Name.');
       if (!description) return showError('Please enter the Short Description.');
@@ -2968,6 +3055,11 @@
       if (!startDate) return showError('Please select a Start Date.');
       if (!endDate) return showError('Please select an End Date.');
       if (endDate < startDate) return showError('End Date cannot be earlier than the Start Date.');
+      if (!adminName) return showError('Please enter the Conference Admin Name.');
+      if (!adminEmail) return showError('Please enter the Conference Admin Google Mail / Workspace Email.');
+      if (!isValidGoogleOrCustomGmail(adminEmail)) {
+        return showError('Please enter a valid Gmail (@gmail.com / @googlemail.com) or Google Workspace custom domain email address.');
+      }
 
       pendingConferenceDraft = {
         id: `conf_${Date.now()}`,
@@ -2979,7 +3071,16 @@
         googleSheetId: '',
         scheduleFile: null,
         additionalFiles: [],
-        themes: []
+        themes: [],
+        initialConferenceAdmin: {
+          id: `usr_${Date.now()}_admin`,
+          name: adminName,
+          designation: 'Conference Admin',
+          email: adminEmail,
+          role: 'Conference Admin',
+          themes: [],
+          addedAt: Date.now()
+        }
       };
 
       closeAddConferenceModal();
@@ -2992,7 +3093,8 @@
         summaryItems: [
           { label: 'Conference Name', value: name, emphasize: true },
           { label: 'Short Description', value: description },
-          { label: 'Scheduled Dates', value: sFmt === eFmt ? sFmt : `${sFmt} to ${eFmt}` }
+          { label: 'Scheduled Dates', value: sFmt === eFmt ? sFmt : `${sFmt} to ${eFmt}` },
+          { label: 'Conference Admin', value: `${adminName} (${adminEmail})` }
         ],
         iconClass: 'fa-solid fa-calendar-plus',
         tone: 'slate',
@@ -3006,6 +3108,10 @@
 
     function openEditConferencePage(conf, returnTab = 'conferences') {
       if (!conf) return;
+      if (!canCurrentUserManageConference(conf)) {
+        showToast('You do not have permission to edit this conference.', 'warning');
+        return;
+      }
       if (conf.isClosed) {
         showToast('This conference is closed and cannot be edited.', 'warning');
         return;
@@ -3146,7 +3252,11 @@
     function handleEditConferenceSubmit(event) {
       event.preventDefault();
       const existingConf = (state.conferences || []).find(c => c.id === editingConferenceId);
-      if (existingConf && existingConf.isClosed) {
+      if (!existingConf || !canCurrentUserManageConference(existingConf)) {
+        showToast('You do not have permission to edit this conference.', 'warning');
+        return;
+      }
+      if (existingConf.isClosed) {
         showToast('This conference is closed and cannot be edited.', 'warning');
         return;
       }
@@ -3243,15 +3353,21 @@
     function confirmSaveConference() {
       if (!pendingConferenceDraft) return;
       const wasEditing = Boolean(editingConferenceId);
-      if (!wasEditing && !isCurrentUserConferenceAdmin()) {
+      if (!wasEditing && !canCurrentUserCreateConference()) {
         pendingConferenceDraft = null;
-        showToast('Only Admins can create a conference.', 'warning');
+        showToast('Only Super Admin and System Admins can create a conference.', 'warning');
         return;
       }
       const existingIdx = (state.conferences || []).findIndex(c => c.id === pendingConferenceDraft.id);
       let savedConf;
+      let createdConferenceAdmin = null;
 
       if (existingIdx >= 0) {
+        if (!canCurrentUserManageConference(state.conferences[existingIdx])) {
+          pendingConferenceDraft = null;
+          showToast('You do not have permission to update this conference.', 'warning');
+          return;
+        }
         savedConf = {
           ...state.conferences[existingIdx],
           ...pendingConferenceDraft,
@@ -3259,9 +3375,11 @@
         };
         state.conferences[existingIdx] = savedConf;
       } else {
+        const { initialConferenceAdmin, ...confFields } = pendingConferenceDraft;
+        createdConferenceAdmin = initialConferenceAdmin || null;
         savedConf = {
-          ...pendingConferenceDraft,
-          members: [],
+          ...confFields,
+          members: createdConferenceAdmin ? [createdConferenceAdmin] : [],
           createdAt: Date.now(),
           updatedAt: Date.now()
         };
@@ -3281,11 +3399,35 @@
         switchTab('conferences');
       }
       showToast(`Saved conference "${savedConf.name}".`, 'success');
+
+      if (!wasEditing && createdConferenceAdmin && createdConferenceAdmin.email) {
+        const sFmt = formatDateDDMMYYYY(savedConf.startDate);
+        const eFmt = formatDateDDMMYYYY(savedConf.endDate);
+        const dateLabel = sFmt && eFmt ? (sFmt === eFmt ? sFmt : `${sFmt} to ${eFmt}`) : '';
+        sendUserAssignmentEmail({
+          name: createdConferenceAdmin.name,
+          email: createdConferenceAdmin.email,
+          role: 'Conference Admin',
+          designation: createdConferenceAdmin.designation || 'Conference Admin',
+          conferenceName: savedConf.name,
+          conferenceDates: dateLabel,
+          themes: []
+        }).then(res => {
+          if (res && res.ok) {
+            showToast(`Intimation email sent to ${createdConferenceAdmin.email}.`, 'success');
+          } else {
+            showToast(`Conference created, but email could not be sent: ${(res && res.error) || 'Check Apps Script gateway'}`, 'warning');
+          }
+        });
+      }
     }
 
     function openConferenceDetails(conferenceId) {
       const conf = (state.conferences || []).find(c => c.id === conferenceId);
-      if (!conf) return;
+      if (!conf || !canCurrentUserManageConference(conf)) {
+        showToast('You do not have permission to view this conference.', 'warning');
+        return;
+      }
       selectedConferenceId = conferenceId;
       activeAdditionalFilePreviewIndex = null;
       switchTab('conference-details');
@@ -3294,14 +3436,14 @@
     function editConferenceById(conferenceId, event) {
       if (event) event.stopPropagation();
       const conf = (state.conferences || []).find(c => c.id === conferenceId);
-      if (!conf) return;
+      if (!conf || !canCurrentUserManageConference(conf)) return;
       openEditConferencePage(conf, 'conferences');
     }
 
     function editActiveConference() {
       if (!selectedConferenceId) return;
       const conf = (state.conferences || []).find(c => c.id === selectedConferenceId);
-      if (!conf) return;
+      if (!conf || !canCurrentUserManageConference(conf)) return;
       if (conf.isClosed) {
         showToast('This conference is closed and cannot be edited.', 'warning');
         return;
@@ -3309,11 +3451,10 @@
       openEditConferencePage(conf, 'conference-details');
     }
 
-    function isCurrentUserConferenceAdmin() {
-      const role = normalizeRoleName(resolveEffectiveUserRole() || 'Super Admin');
-      const session = getActiveSessionInfo();
-      const userEmail = String(session.email || '').toLowerCase().trim();
-      return role === 'Super Admin' || role === 'System Admin' || role === 'Conference Admin' || userEmail === SUPER_ADMIN_EMAIL;
+    function isCurrentUserConferenceAdmin(conf = null) {
+      if (canCurrentUserManageSystemAdmins()) return true;
+      if (conf) return canCurrentUserManageConference(conf);
+      return getManageableConferences().length > 0;
     }
 
     function renderConferencesList() {
@@ -3324,7 +3465,7 @@
       const showCompleted = Boolean(document.getElementById('show-completed-conferences')?.checked);
       const todayISO = getTodayISO();
 
-      const filtered = (state.conferences || []).filter(conf => {
+      const filtered = getManageableConferences().filter(conf => {
         const isCompleted = Boolean(conf.isClosed) || (conf.endDate && conf.endDate < todayISO);
         if (showCompleted ? !isCompleted : isCompleted) return false;
         if (!query) return true;
@@ -3627,7 +3768,7 @@
       }
 
       if (footerActionsEl) {
-        if (!conf.isClosed && isCurrentUserConferenceAdmin()) {
+        if (!conf.isClosed && isCurrentUserConferenceAdmin(conf)) {
           footerActionsEl.classList.remove('hidden');
         } else {
           footerActionsEl.classList.add('hidden');
@@ -3636,12 +3777,12 @@
     }
 
     function openCloseConferenceDialog() {
-      if (!isCurrentUserConferenceAdmin()) {
-        showToast('Only Admins can close a conference.', 'warning');
+      const conf = (state.conferences || []).find(c => c.id === selectedConferenceId);
+      if (!conf || !isCurrentUserConferenceAdmin(conf)) {
+        showToast('Only Admins for this conference can close it.', 'warning');
         return;
       }
-      const conf = (state.conferences || []).find(c => c.id === selectedConferenceId);
-      if (!conf || conf.isClosed) return;
+      if (conf.isClosed) return;
 
       const modal = document.getElementById('close-conference-modal');
       const subtitleEl = document.getElementById('close-conf-modal-subtitle');
@@ -3667,12 +3808,11 @@
     }
 
     function confirmCloseConference() {
-      if (!isCurrentUserConferenceAdmin()) return;
       const agreeInput = document.getElementById('close-conf-agree-input');
       if (!agreeInput || agreeInput.value.trim() !== 'I agree') return;
 
       const conf = (state.conferences || []).find(c => c.id === selectedConferenceId);
-      if (!conf) return;
+      if (!conf || !isCurrentUserConferenceAdmin(conf)) return;
 
       conf.isClosed = true;
       conf.closedAt = Date.now();
@@ -3694,8 +3834,8 @@
 
     function handleAddSystemAdmin(event) {
       event.preventDefault();
-      if (!canCurrentUserAccessSettings()) {
-        showToast('Only Admin users can manage System Admins.', 'warning');
+      if (!canCurrentUserManageSystemAdmins()) {
+        showToast('Only Super Admin and System Admins can manage System Admins.', 'warning');
         return;
       }
 
@@ -3811,7 +3951,7 @@
 
       const todayISO = getTodayISO();
       const query = (document.getElementById('users-active-conf-search')?.value || '').trim().toLowerCase();
-      const activeConfs = (state.conferences || []).filter(conf => {
+      const activeConfs = getManageableConferences().filter(conf => {
         if (conf.isClosed) return false;
         const isActive = !conf.endDate || conf.endDate >= todayISO;
         if (!isActive) return false;
@@ -3828,7 +3968,9 @@
           <div class="text-center py-8 px-4 border border-dashed border-slate-300 rounded-2xl bg-slate-50/60 space-y-2">
             <h4 class="text-sm font-bold text-slate-800">No Active Conferences Available</h4>
             <p class="text-xs text-slate-500 max-w-md mx-auto">
-              Create an upcoming or ongoing conference in <strong>Settings &rarr; Conference</strong> first to assign team members.
+              ${canCurrentUserCreateConference()
+                ? 'Create an upcoming or ongoing conference in <strong>Settings &rarr; Conference</strong> first to assign team members.'
+                : 'No active conferences are currently assigned to your Conference Admin account.'}
             </p>
           </div>
         `;
@@ -3863,7 +4005,7 @@
 
     function selectConferenceForUsersPage(conferenceId) {
       const conf = (state.conferences || []).find(c => c.id === conferenceId);
-      if (!conf) return;
+      if (!conf || !canCurrentUserManageConference(conf)) return;
       usersPageSelectedConferenceId = conferenceId;
       usersSubTab = 'added';
       selectedReviewerIdForMapping = null;
@@ -3895,7 +4037,8 @@
       const panel = document.getElementById('users-selected-conference-panel');
       if (!panel) return;
       const conf = (state.conferences || []).find(c => c.id === usersPageSelectedConferenceId);
-      if (!conf) {
+      if (!conf || !canCurrentUserManageConference(conf)) {
+        usersPageSelectedConferenceId = null;
         if (activeListCard) activeListCard.classList.remove('hidden');
         panel.classList.add('hidden');
         return;
@@ -3964,7 +4107,7 @@
 
     function toggleReviewerThemeTag(themeName) {
       const conf = (state.conferences || []).find(c => c.id === usersPageSelectedConferenceId);
-      if (!conf || !selectedReviewerIdForMapping) return;
+      if (!conf || !canCurrentUserManageConference(conf) || !selectedReviewerIdForMapping) return;
       const member = (conf.members || []).find(m => m.id === selectedReviewerIdForMapping && m.role === 'Reviewer');
       if (!member) return;
 
@@ -4131,12 +4274,11 @@
 
     function handleAddUserFromUsersPage(event) {
       event.preventDefault();
-      if (!canCurrentUserAccessSettings()) {
-        showToast('Only Admin users can manage conference users.', 'warning');
+      const conf = (state.conferences || []).find(c => c.id === usersPageSelectedConferenceId);
+      if (!conf || !canCurrentUserManageConference(conf)) {
+        showToast('Only Admins for this conference can manage conference users.', 'warning');
         return;
       }
-      const conf = (state.conferences || []).find(c => c.id === usersPageSelectedConferenceId);
-      if (!conf) return;
       if (conf.isClosed) {
         showToast('This conference is closed. No users can be added.', 'warning');
         return;
@@ -4319,7 +4461,7 @@
     function renderAll() {
       const confBadge = document.getElementById('nav-badge-conferences');
       const usersBadge = document.getElementById('nav-badge-users');
-      if (confBadge) confBadge.textContent = String((state.conferences || []).length);
+      if (confBadge) confBadge.textContent = String(getManageableConferences().length);
       if (usersBadge) usersBadge.textContent = String(getTotalUniqueConferenceUsersCount());
 
       renderAccountUI();
