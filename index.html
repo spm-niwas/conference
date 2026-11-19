@@ -98,71 +98,105 @@
         <div class="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <!-- Dynamic Breadcrumb Navigation -->
-            <nav id="page-breadcrumb" aria-label="Breadcrumb" class="flex flex-wrap items-center gap-1.5 text-xs text-slate-500 mb-1"><button type="button" onclick="switchTab('overview')" class="font-medium text-indigo-600 hover:text-indigo-800 hover:underline transition">Dashboard</button><span class="text-slate-400">/</span><button type="button" onclick="switchTab('conferences')" class="font-medium text-indigo-600 hover:text-indigo-800 hover:underline transition">Settings</button><span class="text-slate-400">/</span><button type="button" onclick="switchTab('conferences')" class="font-medium text-indigo-600 hover:text-indigo-800 hover:underline transition">Conference</button><span class="text-slate-400">/</span><span class="font-semibold text-slate-700">dfljds f (Edit)</span></nav>
-            <h1 id="page-title" class="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">dfljds f (Edit)</h1>
-            <p id="page-subtitle" class="text-xs sm:text-sm text-slate-500 mt-0.5">Update conference details, schedule dates, and submission themes.</p>
+            <nav id="page-breadcrumb" aria-label="Breadcrumb" class="flex flex-wrap items-center gap-1.5 text-xs text-slate-500 mb-1"></nav>
+            <h1 id="page-title" class="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">Dashboard</h1>
+            <p id="page-subtitle" class="text-xs sm:text-sm text-slate-500 mt-0.5">Internal screening, editorial distribution &amp; peer review governance.</p>
           </div>
 
-          <!-- Internal Roles Reference Grid -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-            <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs space-y-1.5">
-              <div class="flex items-center justify-between">
-                <span class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                  <i class="fa-solid fa-crown text-slate-500"></i> Super Admin
-                </span>
-                <span class="text-[10px] font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">Hardcoded</span>
-              </div>
-              <p class="text-[11px] text-slate-600 leading-relaxed">
-                <strong>director@spmniwas.in</strong> — Full conference governance, Settings &amp; Users &amp; Permissions control, and final decisions.
-              </p>
-            </div>
+          <!-- Right-Side Header Controls: Add Conference (Conference Tab), Edit (Conference Details), Google Auth & Account Gear -->
+          <div class="flex items-center gap-2.5 self-start sm:self-auto">
+            <!-- Add Conference Button (Shown ONLY on Conference Tab) -->
+            <button id="header-add-conference-btn" type="button" onclick="openAddConferenceModal()" class="hidden px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs sm:text-sm font-semibold shadow-sm transition flex items-center gap-2">
+              <i class="fa-solid fa-plus text-xs"></i>
+              <span>Add Conference</span>
+            </button>
 
-            <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs space-y-1.5">
-              <div class="flex items-center justify-between">
-                <span class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                  <i class="fa-solid fa-user-gear text-slate-500"></i> Admin
-                </span>
-                <span class="text-[10px] font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">Settings Access</span>
-              </div>
-              <p class="text-[11px] text-slate-600 leading-relaxed">
-                Has access to <strong>Settings → Users &amp; Permissions</strong>, Google Form intake, and internal desk screening.
-              </p>
-            </div>
+            <!-- Edit Conference Button (Shown ONLY on Conference Details View, to the left of gear) -->
+            <button id="header-edit-conference-btn" type="button" onclick="editActiveConference()" title="Edit Conference" class="hidden px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs sm:text-sm font-semibold shadow-sm transition flex items-center gap-2">
+              <i class="fa-solid fa-pen-to-square text-xs"></i>
+              <span>Edit</span>
+            </button>
 
-            <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs space-y-1.5">
-              <div class="flex items-center justify-between">
-                <span class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                  <i class="fa-solid fa-magnifying-glass-chart text-slate-500"></i> Scrutinizer
-                </span>
-                <span class="text-[10px] font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">Screening</span>
-              </div>
-              <p class="text-[11px] text-slate-600 leading-relaxed">
-                Performs initial desk scrutiny of submitted papers for completeness, formatting compliance, and scope fit.
-              </p>
-            </div>
+            <!-- Sign In with Google Button (Shown when Logged Out) -->
+            <button id="google-signin-btn" type="button" onclick="signInWithGoogleAccount()" class="hidden px-3.5 py-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 text-xs sm:text-sm font-semibold shadow-sm transition flex items-center gap-2">
+              <i class="fa-brands fa-google text-indigo-600"></i>
+              <span>Sign in with Google</span>
+            </button>
 
-            <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs space-y-1.5">
-              <div class="flex items-center justify-between">
-                <span class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                  <i class="fa-solid fa-share-nodes text-slate-500"></i> Editorial Member
-                </span>
-                <span class="text-[10px] font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">Distribution</span>
-              </div>
-              <p class="text-[11px] text-slate-600 leading-relaxed">
-                Distributes desk-approved manuscripts among Reviewers and tracks review completion.
-              </p>
-            </div>
+            <!-- Gear Account Menu (Shown when Logged In) -->
+            <div id="account-gear-container" class="relative">
+              <button id="account-gear-btn" type="button" onclick="toggleAccountMenu(event)" title="Account &amp; Role Settings" class="relative w-10 h-10 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 flex items-center justify-center transition shadow-2xs">
+                <i class="fa-solid fa-gear text-base"></i>
+                <span id="cloud-sync-indicator" title="Connecting to Cloud Sync..." class="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-slate-400 animate-pulse ring-2 ring-white"></span>
+              </button>
 
-            <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs space-y-1.5">
-              <div class="flex items-center justify-between">
-                <span class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                  <i class="fa-solid fa-clipboard-check text-slate-500"></i> Reviewer
-                </span>
-                <span class="text-[10px] font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">Blind Review</span>
+              <!-- Account Dropdown Popover -->
+              <div id="account-dropdown-menu" class="hidden absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-xl border border-slate-200/90 overflow-hidden z-40">
+                <div class="p-4 bg-slate-50 border-b border-slate-200/80 flex items-start gap-3">
+                  <img id="account-menu-photo" src="" alt="Profile" class="hidden w-11 h-11 rounded-full object-cover border border-slate-200 shrink-0">
+                  <div id="account-menu-initials" class="w-11 h-11 rounded-full bg-slate-800 text-white font-bold text-sm flex items-center justify-center shrink-0">SA</div>
+                  <div class="min-w-0 flex-1">
+                    <p id="account-menu-name" class="text-sm font-bold text-slate-900 truncate">Director (Super Admin)</p>
+                    <p id="account-menu-designation" class="text-xs font-medium text-slate-600 truncate">Conference Director</p>
+                    <p id="account-menu-email" class="text-[11px] text-slate-500 truncate mt-0.5">director@spmniwas.in</p>
+                    <span id="account-menu-role-badge" class="inline-block mt-1.5 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-slate-200/80 text-slate-800">Role: Super Admin</span>
+                  </div>
+                </div>
+
+                <div class="p-2 space-y-1">
+                  <button type="button" onclick="signOutGoogleAccount()" class="w-full px-3.5 py-2.5 rounded-xl text-left text-xs font-semibold text-rose-600 hover:bg-rose-50 flex items-center gap-2.5 transition">
+                    <i class="fa-solid fa-right-from-bracket w-4 text-center"></i>
+                    <span>Logout</span>
+                  </button>
+                </div>
               </div>
-              <p class="text-[11px] text-slate-600 leading-relaxed">
-                Scoped view of assigned blinded manuscripts to submit structured rubric scores and feedback.
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Workspace Content Container -->
+      <div class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-8 py-6 space-y-6">
+
+        <!-- LOGGED-OUT ACCESS GATE -->
+        <div id="access-gate-section" class="hidden bg-white rounded-2xl border border-slate-200 p-8 sm:p-10 text-center max-w-lg mx-auto my-8 shadow-sm space-y-4">
+          <div class="w-12 h-12 rounded-2xl bg-slate-100 text-slate-700 flex items-center justify-center mx-auto">
+            <i class="fa-solid fa-lock text-xl"></i>
+          </div>
+          <div class="space-y-1.5">
+            <h2 class="text-lg font-bold text-slate-900">Signed Out of NIWAS Conference Portal</h2>
+            <p class="text-xs sm:text-sm text-slate-500">
+              Sign in with your Google Mail account to access your assigned conference workspace, or sign back in as the hardcoded Super Admin.
+            </p>
+          </div>
+          <div class="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+            <button type="button" onclick="signInWithGoogleAccount()" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs sm:text-sm font-semibold shadow-sm transition flex items-center justify-center gap-2">
+              <i class="fa-brands fa-google"></i>
+              <span>Sign in with Google</span>
+            </button>
+            <button type="button" onclick="resumeSuperAdminSession()" class="w-full sm:w-auto px-4 py-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs sm:text-sm font-semibold transition">
+              Sign in as Super Admin
+            </button>
+          </div>
+        </div>
+
+        <!-- VIEW 1: DASHBOARD (`overview`) -->
+        <div id="view-overview" class="space-y-6">
+          <!-- Session & Role Summary Banner -->
+          <div class="bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div class="space-y-1">
+              <div class="flex flex-wrap items-center gap-2">
+                <h2 id="overview-welcome-title" class="text-base sm:text-lg font-bold text-slate-900">Welcome, Director (Super Admin)</h2>
+                <span id="overview-role-pill" class="text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-800 border border-slate-200">Super Admin</span>
+              </div>
+              <p class="text-xs text-slate-500">
+                Signed in as <strong id="overview-account-email" class="text-slate-700">director@spmniwas.in</strong> &middot; <span id="overview-role-note">Hardcoded Super Admin</span>
               </p>
+              <p id="overview-settings-access" class="text-xs text-slate-600 pt-0.5"></p>
+            </div>
+            <div class="flex items-center gap-2 shrink-0">
+              <span class="text-[11px] font-semibold text-slate-500">Active Role:</span>
+              <span id="overview-current-role" class="text-xs font-bold text-slate-800 bg-slate-100 px-3 py-1 rounded-lg border border-slate-200">Super Admin</span>
             </div>
           </div>
         </div>
@@ -491,6 +525,15 @@
                 </div>
                 <div id="conf-detail-additional-files" class="md:col-span-8 p-4 sm:px-6 sm:py-5 bg-white flex items-center"></div>
               </div>
+
+              <!-- 8. Submission Google Sheet -->
+              <div class="grid grid-cols-1 md:grid-cols-12">
+                <div class="md:col-span-4 p-4 sm:px-6 sm:py-5 bg-slate-50/70 border-b md:border-b-0 md:border-r border-slate-200/80 space-y-1">
+                  <span class="block text-xs sm:text-sm font-bold text-slate-800">Submission Google Sheet</span>
+                  <p class="text-xs text-slate-500 leading-relaxed">Linked Google Form response sheet ID for live submission sync.</p>
+                </div>
+                <div id="conf-detail-sheet-id" class="md:col-span-8 p-4 sm:px-6 sm:py-5 bg-white flex items-center"></div>
+              </div>
             </div>
           </div>
         </div>
@@ -654,6 +697,29 @@
                       <span>Add File Upload</span>
                     </button>
                   </div>
+                </div>
+              </div>
+
+              <!-- 8. Submission Google Sheet ID -->
+              <div class="grid grid-cols-1 md:grid-cols-12">
+                <div class="md:col-span-4 p-4 sm:px-6 sm:py-5 bg-slate-50/70 border-b md:border-b-0 md:border-r border-slate-200/80 space-y-1">
+                  <label for="edit-conf-sheet-id-input" class="block text-xs sm:text-sm font-bold text-slate-800">
+                    Submission Google Sheet ID
+                  </label>
+                  <p class="text-xs text-slate-500 leading-relaxed">Paste the Google Sheet ID (or full Sheet URL) linked to this conference's submission Google Form.</p>
+                </div>
+                <div class="md:col-span-8 p-4 sm:px-6 sm:py-5 bg-white space-y-2">
+                  <div class="flex flex-col sm:flex-row sm:items-center gap-2.5">
+                    <div class="relative flex-1">
+                      <i class="fa-solid fa-table text-emerald-600 text-xs absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+                      <input id="edit-conf-sheet-id-input" type="text" oninput="handleEditGoogleSheetIdInput()" placeholder="Paste Google Sheet ID or https://docs.google.com/spreadsheets/d/..." class="w-full pl-9 pr-3.5 py-2 rounded-xl border border-slate-300 text-xs sm:text-sm font-mono text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <a id="edit-conf-sheet-preview-link" href="#" target="_blank" rel="noopener noreferrer" class="hidden px-3.5 py-2 rounded-xl border border-slate-300 bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-semibold transition inline-flex items-center justify-center gap-1.5 shrink-0">
+                      <i class="fa-solid fa-arrow-up-right-from-square text-[11px]"></i>
+                      <span>Open Sheet</span>
+                    </a>
+                  </div>
+                  <p id="edit-conf-sheet-id-hint" class="text-[11px] text-slate-500">Form columns and Drive uploads are auto-detected from Row 1 headers.</p>
                 </div>
               </div>
 
@@ -1532,6 +1598,256 @@
     let activeConfirmCallbacks = { onConfirm: null, onCancel: null };
     let editScheduleDraft = null;
     let editAdditionalFilesDraft = [];
+    const MAX_FILE_UPLOAD_BYTES = 2 * 1024 * 1024; // 2 MB per file
+
+    function formatFileSizeBytes(bytes) {
+      const n = Number(bytes || 0);
+      if (!n || n <= 0) return '';
+      if (n < 1024) return `${n} B`;
+      if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`;
+      return `${(n / (1024 * 1024)).toFixed(2)} MB`;
+    }
+
+    function readFileAsDataUrl(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result || ''));
+        reader.onerror = () => reject(new Error('Failed to read selected file.'));
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function markEditConferenceDirty() {
+      if (!editingConferenceId) return;
+      const currentSnapshot = getEditConferenceFormSnapshot();
+      isEditConferenceDirty = currentSnapshot !== initialEditConferenceSnapshot;
+    }
+
+    function sanitizeRichHtml(rawHtml) {
+      if (!rawHtml || typeof rawHtml !== 'string') return '';
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(`<div>${rawHtml}</div>`, 'text/html');
+      const root = doc.body.firstElementChild;
+      if (!root) return '';
+
+      const allowedTags = new Set(['B', 'STRONG', 'I', 'EM', 'U', 'H2', 'H3', 'A', 'P', 'BR', 'DIV', 'SPAN']);
+
+      function cleanNode(node) {
+        if (node.nodeType === Node.TEXT_NODE) {
+          return document.createTextNode(node.textContent || '');
+        }
+        if (node.nodeType !== Node.ELEMENT_NODE) {
+          return document.createDocumentFragment();
+        }
+
+        let tagName = node.tagName.toUpperCase();
+        if (tagName === 'H1') tagName = 'H2';
+        if (tagName === 'H4' || tagName === 'H5' || tagName === 'H6') tagName = 'H3';
+
+        if (!allowedTags.has(tagName)) {
+          const frag = document.createDocumentFragment();
+          Array.from(node.childNodes).forEach(child => frag.appendChild(cleanNode(child)));
+          return frag;
+        }
+
+        const cleanEl = document.createElement(tagName.toLowerCase());
+        if (tagName === 'A') {
+          let href = (node.getAttribute('href') || '').trim();
+          if (/^(https?:\/\/|mailto:)/i.test(href)) {
+            cleanEl.setAttribute('href', href);
+            cleanEl.setAttribute('target', '_blank');
+            cleanEl.setAttribute('rel', 'noopener noreferrer');
+          }
+        }
+        Array.from(node.childNodes).forEach(child => cleanEl.appendChild(cleanNode(child)));
+        return cleanEl;
+      }
+
+      const out = document.createElement('div');
+      Array.from(root.childNodes).forEach(child => out.appendChild(cleanNode(child)));
+      return out.innerHTML.trim();
+    }
+
+    function applyRichTextFormat(action) {
+      const editor = document.getElementById('edit-conf-long-desc-editor');
+      if (!editor) return;
+      editor.focus();
+
+      if (action === 'heading1') {
+        const currentBlock = String(document.queryCommandValue('formatBlock') || '').toLowerCase();
+        document.execCommand('formatBlock', false, currentBlock === 'h2' ? 'P' : 'H2');
+      } else if (action === 'heading2') {
+        const currentBlock = String(document.queryCommandValue('formatBlock') || '').toLowerCase();
+        document.execCommand('formatBlock', false, currentBlock === 'h3' ? 'P' : 'H3');
+      } else if (action === 'bold') {
+        document.execCommand('bold', false, null);
+      } else if (action === 'italic') {
+        document.execCommand('italic', false, null);
+      } else if (action === 'underline') {
+        document.execCommand('underline', false, null);
+      }
+      markEditConferenceDirty();
+    }
+
+    function renderEditScheduleStatus() {
+      const statusEl = document.getElementById('edit-conf-schedule-status');
+      if (!statusEl) return;
+      if (!editScheduleDraft || !editScheduleDraft.fileName) {
+        statusEl.innerHTML = `<p class="text-xs text-slate-400">No schedule file uploaded yet.</p>`;
+        return;
+      }
+      const sizeLabel = formatFileSizeBytes(editScheduleDraft.fileSize);
+      statusEl.innerHTML = `
+        <div class="inline-flex flex-wrap items-center gap-2.5 px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs">
+          <i class="fa-solid fa-file-circle-check text-emerald-600"></i>
+          <span class="font-semibold text-slate-800">${escapeHtml(editScheduleDraft.fileName)}</span>
+          ${sizeLabel ? `<span class="text-slate-400">(${escapeHtml(sizeLabel)})</span>` : ''}
+          ${editScheduleDraft.dataUrl ? `<a href="${escapeHtml(editScheduleDraft.dataUrl)}" download="${escapeHtml(editScheduleDraft.fileName)}" class="text-indigo-600 hover:underline font-semibold">Download</a>` : ''}
+          <button type="button" onclick="clearEditScheduleFile()" title="Remove Schedule" class="text-rose-600 hover:text-rose-700 font-semibold ml-1">
+            <i class="fa-solid fa-trash-can"></i>
+          </button>
+        </div>
+      `;
+    }
+
+    async function handleEditScheduleFileChange(event) {
+      const input = event.target;
+      const file = input && input.files ? input.files[0] : null;
+      if (!file) return;
+      if (file.size > MAX_FILE_UPLOAD_BYTES) {
+        showToast('Schedule file exceeds the 2 MB limit.', 'warning');
+        input.value = '';
+        return;
+      }
+      try {
+        const dataUrl = await readFileAsDataUrl(file);
+        editScheduleDraft = {
+          fileName: file.name,
+          fileType: file.type || 'application/octet-stream',
+          fileSize: file.size,
+          dataUrl
+        };
+        renderEditScheduleStatus();
+        markEditConferenceDirty();
+        showToast(`Attached schedule "${file.name}".`, 'success');
+      } catch (err) {
+        showToast(err.message || 'Unable to read schedule file.', 'error');
+      } finally {
+        input.value = '';
+      }
+    }
+
+    function clearEditScheduleFile() {
+      editScheduleDraft = null;
+      renderEditScheduleStatus();
+      markEditConferenceDirty();
+    }
+
+    function renderEditAdditionalFilesList() {
+      const listEl = document.getElementById('edit-conf-additional-files-list');
+      const counterEl = document.getElementById('edit-conf-files-counter');
+      const addBtn = document.getElementById('edit-conf-add-file-btn');
+      if (!listEl) return;
+
+      const count = editAdditionalFilesDraft.length;
+      if (counterEl) counterEl.textContent = `${count} / 10 files`;
+      if (addBtn) addBtn.disabled = count >= 10;
+
+      if (count === 0) {
+        listEl.innerHTML = `<p class="text-xs text-slate-400">No additional files added yet. Click <strong>Add File Upload</strong> below (up to 10).</p>`;
+        return;
+      }
+
+      listEl.innerHTML = editAdditionalFilesDraft.map((item, idx) => {
+        const sizeLabel = formatFileSizeBytes(item.fileSize);
+        return `
+          <div class="p-3.5 rounded-xl border border-slate-200 bg-slate-50/70 space-y-2.5">
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">File #${idx + 1}</span>
+              <button type="button" onclick="removeEditAdditionalFileRow(${idx})" title="Remove File" class="text-xs font-semibold text-rose-600 hover:text-rose-700 inline-flex items-center gap-1">
+                <i class="fa-solid fa-trash-can text-[11px]"></i>
+                <span>Remove</span>
+              </button>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-center">
+              <div class="sm:col-span-4">
+                <input type="text" value="${escapeHtml(item.title || '')}" oninput="updateEditAdditionalFileField(${idx}, 'title', this.value)" placeholder="File Name (e.g., Author Guidelines)" class="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              </div>
+              <div class="sm:col-span-4">
+                <input id="edit-add-file-picker-${idx}" type="file" onchange="handleEditAdditionalFileUpload(${idx}, event)" class="hidden">
+                <button type="button" onclick="document.getElementById('edit-add-file-picker-${idx}').click()" class="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white hover:bg-slate-100 text-xs font-medium text-slate-700 flex items-center justify-between gap-2 transition">
+                  <span class="truncate">${item.uploadedFileName ? escapeHtml(item.uploadedFileName) : 'Choose File Upload...'}</span>
+                  <i class="fa-solid fa-upload text-indigo-600 shrink-0"></i>
+                </button>
+                ${sizeLabel ? `<span class="text-[10px] text-slate-400 block mt-0.5">${escapeHtml(sizeLabel)}</span>` : ''}
+              </div>
+              <div class="sm:col-span-4">
+                <input type="url" value="${escapeHtml(item.fileUrl || '')}" oninput="updateEditAdditionalFileField(${idx}, 'fileUrl', this.value)" placeholder="File URL (https://...)" class="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function addEditAdditionalFileRow() {
+      if (editAdditionalFilesDraft.length >= 10) {
+        showToast('Maximum of 10 additional files allowed.', 'warning');
+        return;
+      }
+      editAdditionalFilesDraft.push({
+        id: `file_${Date.now()}_${editAdditionalFilesDraft.length}`,
+        title: '',
+        uploadedFileName: '',
+        fileType: '',
+        fileSize: 0,
+        dataUrl: '',
+        fileUrl: ''
+      });
+      renderEditAdditionalFilesList();
+      markEditConferenceDirty();
+    }
+
+    function removeEditAdditionalFileRow(index) {
+      if (index < 0 || index >= editAdditionalFilesDraft.length) return;
+      editAdditionalFilesDraft.splice(index, 1);
+      renderEditAdditionalFilesList();
+      markEditConferenceDirty();
+    }
+
+    function updateEditAdditionalFileField(index, field, value) {
+      if (!editAdditionalFilesDraft[index]) return;
+      editAdditionalFilesDraft[index][field] = value;
+      markEditConferenceDirty();
+    }
+
+    async function handleEditAdditionalFileUpload(index, event) {
+      const input = event.target;
+      const file = input && input.files ? input.files[0] : null;
+      if (!file || !editAdditionalFilesDraft[index]) return;
+      if (file.size > MAX_FILE_UPLOAD_BYTES) {
+        showToast('Uploaded file exceeds the 2 MB limit.', 'warning');
+        input.value = '';
+        return;
+      }
+      try {
+        const dataUrl = await readFileAsDataUrl(file);
+        editAdditionalFilesDraft[index].uploadedFileName = file.name;
+        editAdditionalFilesDraft[index].fileType = file.type || 'application/octet-stream';
+        editAdditionalFilesDraft[index].fileSize = file.size;
+        editAdditionalFilesDraft[index].dataUrl = dataUrl;
+        if (!editAdditionalFilesDraft[index].title.trim()) {
+          editAdditionalFilesDraft[index].title = file.name.replace(/\.[^/.]+$/, '');
+        }
+        renderEditAdditionalFilesList();
+        markEditConferenceDirty();
+        showToast(`Attached "${file.name}".`, 'success');
+      } catch (err) {
+        showToast(err.message || 'Unable to read file.', 'error');
+      } finally {
+        input.value = '';
+      }
+    }
 
     function openAppConfirmDialog({
       title = 'Confirm Action',
@@ -1639,6 +1955,7 @@
       const start = document.getElementById('edit-conf-start-date')?.value || '';
       const end = document.getElementById('edit-conf-end-date')?.value || '';
       const themes = (document.getElementById('edit-conf-themes-input')?.value || '').trim();
+      const googleSheetId = extractGoogleSheetId(document.getElementById('edit-conf-sheet-id-input')?.value || '');
       return JSON.stringify({
         name,
         desc,
@@ -1646,245 +1963,44 @@
         start,
         end,
         themes,
+        googleSheetId,
         scheduleFile: editScheduleDraft,
         additionalFiles: editAdditionalFilesDraft
       });
     }
 
-    function formatFileSizeBytes(bytes) {
-      const num = Number(bytes || 0);
-      if (!num || num <= 0) return '';
-      if (num < 1024) return `${num} B`;
-      if (num < 1024 * 1024) return `${(num / 1024).toFixed(1)} KB`;
-      return `${(num / (1024 * 1024)).toFixed(2)} MB`;
+    function extractGoogleSheetId(rawValue) {
+      const trimmed = String(rawValue || '').trim();
+      if (!trimmed) return '';
+      const urlMatch = trimmed.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+      if (urlMatch && urlMatch[1]) return urlMatch[1];
+      return trimmed;
     }
 
-    function readFileAsDataURL(file, maxBytes = 2 * 1024 * 1024) {
-      return new Promise((resolve, reject) => {
-        if (!file) return reject(new Error('No file selected.'));
-        if (file.size > maxBytes) {
-          return reject(new Error(`"${file.name}" exceeds the 2 MB upload limit.`));
-        }
-        const reader = new FileReader();
-        reader.onload = () => resolve({
-          fileName: file.name,
-          fileType: file.type || 'application/octet-stream',
-          fileSize: file.size || 0,
-          dataUrl: String(reader.result || '')
-        });
-        reader.onerror = () => reject(new Error(`Could not read "${file.name}".`));
-        reader.readAsDataURL(file);
-      });
-    }
+    function handleEditGoogleSheetIdInput() {
+      const inputEl = document.getElementById('edit-conf-sheet-id-input');
+      const linkEl = document.getElementById('edit-conf-sheet-preview-link');
+      const hintEl = document.getElementById('edit-conf-sheet-id-hint');
+      if (!inputEl) return;
 
-    function renderEditScheduleStatus() {
-      const statusEl = document.getElementById('edit-conf-schedule-status');
-      if (!statusEl) return;
-      if (!editScheduleDraft || !editScheduleDraft.fileName) {
-        statusEl.innerHTML = `<span class="text-xs text-slate-400">No schedule file uploaded yet.</span>`;
-        return;
-      }
-      const sizeText = formatFileSizeBytes(editScheduleDraft.fileSize);
-      statusEl.innerHTML = `
-        <div class="inline-flex flex-wrap items-center gap-2.5 px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs">
-          <i class="fa-solid fa-file-lines text-indigo-600"></i>
-          <span class="font-semibold text-slate-800">${escapeHtml(editScheduleDraft.fileName)}</span>
-          ${sizeText ? `<span class="text-slate-400">(${escapeHtml(sizeText)})</span>` : ''}
-          ${editScheduleDraft.dataUrl ? `<a href="${escapeHtml(editScheduleDraft.dataUrl)}" download="${escapeHtml(editScheduleDraft.fileName)}" class="text-indigo-600 hover:underline font-semibold">Download</a>` : ''}
-          <button type="button" onclick="clearEditScheduleFile()" title="Remove schedule file" class="text-rose-500 hover:text-rose-700 font-semibold ml-1">
-            <i class="fa-solid fa-xmark"></i>
-          </button>
-        </div>
-      `;
-    }
-
-    async function handleEditScheduleFileChange(event) {
-      const file = event?.target?.files?.[0];
-      if (!file) return;
-      try {
-        const uploaded = await readFileAsDataURL(file);
-        editScheduleDraft = uploaded;
-        renderEditScheduleStatus();
-        markEditConferenceDirty();
-        showToast(`Attached schedule "${file.name}".`, 'success');
-      } catch (err) {
-        showToast(err && err.message ? err.message : 'Could not upload schedule file.', 'error');
-      } finally {
-        event.target.value = '';
-      }
-    }
-
-    function clearEditScheduleFile() {
-      editScheduleDraft = null;
-      const input = document.getElementById('edit-conf-schedule-input');
-      if (input) input.value = '';
-      renderEditScheduleStatus();
-      markEditConferenceDirty();
-    }
-
-    function renderEditAdditionalFilesList() {
-      const listEl = document.getElementById('edit-conf-additional-files-list');
-      const counterEl = document.getElementById('edit-conf-files-counter');
-      const addBtn = document.getElementById('edit-conf-add-file-btn');
-      if (!listEl) return;
-
-      const count = editAdditionalFilesDraft.length;
-      if (counterEl) counterEl.textContent = `${count} / 10 files`;
-      if (addBtn) addBtn.disabled = count >= 10;
-
-      if (count === 0) {
-        listEl.innerHTML = `<p class="text-xs text-slate-400">No additional files added. Click <strong>Add File Upload</strong> below to add up to 10 files.</p>`;
-        return;
+      const extracted = extractGoogleSheetId(inputEl.value);
+      if (extracted && extracted !== inputEl.value.trim()) {
+        inputEl.value = extracted;
       }
 
-      listEl.innerHTML = editAdditionalFilesDraft.map((item, idx) => {
-        const sizeText = formatFileSizeBytes(item.fileSize);
-        return `
-          <div class="p-3.5 rounded-xl border border-slate-200 bg-slate-50/70 space-y-2.5">
-            <div class="flex items-center justify-between gap-2">
-              <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">File #${idx + 1}</span>
-              <button type="button" onclick="removeEditAdditionalFileRow(${idx})" title="Remove File" class="text-xs font-semibold text-rose-600 hover:text-rose-700 inline-flex items-center gap-1">
-                <i class="fa-solid fa-trash-can text-[11px]"></i>
-                <span>Remove</span>
-              </button>
-            </div>
-            <div class="grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-center">
-              <div class="sm:col-span-4">
-                <label class="block text-[11px] font-semibold text-slate-600 mb-1">File Name</label>
-                <input type="text" value="${escapeHtml(item.title || '')}" oninput="updateEditAdditionalFileField(${idx}, 'title', this.value)" placeholder="e.g., Author Guidelines" class="w-full px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-              </div>
-              <div class="sm:col-span-4">
-                <label class="block text-[11px] font-semibold text-slate-600 mb-1">File Upload</label>
-                <input id="edit-add-file-input-${idx}" type="file" onchange="handleEditAdditionalFileUpload(${idx}, event)" class="hidden">
-                <div class="flex items-center gap-2">
-                  <button type="button" onclick="document.getElementById('edit-add-file-input-${idx}').click()" class="px-3 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold transition inline-flex items-center gap-1.5 shrink-0">
-                    <i class="fa-solid fa-upload text-indigo-600 text-[11px]"></i>
-                    <span>${item.uploadedFileName ? 'Replace' : 'Choose File'}</span>
-                  </button>
-                  ${item.uploadedFileName ? `<span class="text-[11px] text-slate-600 truncate" title="${escapeHtml(item.uploadedFileName)}">${escapeHtml(item.uploadedFileName)}${sizeText ? ` (${escapeHtml(sizeText)})` : ''}</span>` : '<span class="text-[11px] text-slate-400 truncate">No file</span>'}
-                </div>
-              </div>
-              <div class="sm:col-span-4">
-                <label class="block text-[11px] font-semibold text-slate-600 mb-1">File URL</label>
-                <input type="url" value="${escapeHtml(item.fileUrl || '')}" oninput="updateEditAdditionalFileField(${idx}, 'fileUrl', this.value)" placeholder="https://..." class="w-full px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-              </div>
-            </div>
-          </div>
-        `;
-      }).join('');
-    }
-
-    function addEditAdditionalFileRow() {
-      if (editAdditionalFilesDraft.length >= 10) {
-        showToast('Maximum of 10 additional files allowed.', 'warning');
-        return;
-      }
-      editAdditionalFilesDraft.push({
-        id: `file_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
-        title: '',
-        uploadedFileName: '',
-        fileType: '',
-        fileSize: 0,
-        dataUrl: '',
-        fileUrl: ''
-      });
-      renderEditAdditionalFilesList();
-      markEditConferenceDirty();
-    }
-
-    function removeEditAdditionalFileRow(index) {
-      if (index < 0 || index >= editAdditionalFilesDraft.length) return;
-      editAdditionalFilesDraft.splice(index, 1);
-      renderEditAdditionalFilesList();
-      markEditConferenceDirty();
-    }
-
-    function updateEditAdditionalFileField(index, field, value) {
-      if (!editAdditionalFilesDraft[index]) return;
-      editAdditionalFilesDraft[index][field] = value;
-      markEditConferenceDirty();
-    }
-
-    async function handleEditAdditionalFileUpload(index, event) {
-      const file = event?.target?.files?.[0];
-      if (!file || !editAdditionalFilesDraft[index]) return;
-      try {
-        const uploaded = await readFileAsDataURL(file);
-        editAdditionalFilesDraft[index].uploadedFileName = uploaded.fileName;
-        editAdditionalFilesDraft[index].fileType = uploaded.fileType;
-        editAdditionalFilesDraft[index].fileSize = uploaded.fileSize;
-        editAdditionalFilesDraft[index].dataUrl = uploaded.dataUrl;
-        if (!editAdditionalFilesDraft[index].title.trim()) {
-          editAdditionalFilesDraft[index].title = uploaded.fileName.replace(/\.[^/.]+$/, '');
+      if (linkEl) {
+        if (extracted) {
+          linkEl.href = `https://docs.google.com/spreadsheets/d/${encodeURIComponent(extracted)}/edit`;
+          linkEl.classList.remove('hidden');
+        } else {
+          linkEl.classList.add('hidden');
         }
-        renderEditAdditionalFilesList();
-        markEditConferenceDirty();
-        showToast(`Attached "${file.name}".`, 'success');
-      } catch (err) {
-        showToast(err && err.message ? err.message : 'Could not upload file.', 'error');
-      } finally {
-        event.target.value = '';
-      }
-    }
-
-    function markEditConferenceDirty() {
-      if (currentTab !== 'edit-conference') return;
-      const currentSnap = getEditConferenceFormSnapshot();
-      isEditConferenceDirty = currentSnap !== initialEditConferenceSnapshot;
-    }
-
-    function sanitizeRichHtml(rawHtml) {
-      const container = document.createElement('div');
-      container.innerHTML = String(rawHtml || '');
-      const allowedTags = new Set(['H2', 'H3', 'B', 'STRONG', 'I', 'EM', 'U', 'A', 'P', 'BR', 'DIV']);
-
-      function cleanNode(node) {
-        if (node.nodeType === Node.TEXT_NODE) {
-          return document.createTextNode(node.textContent || '');
-        }
-        if (node.nodeType !== Node.ELEMENT_NODE) {
-          return document.createDocumentFragment();
-        }
-        let tag = node.tagName.toUpperCase();
-        if (tag === 'H1') tag = 'H2';
-
-        if (!allowedTags.has(tag)) {
-          const frag = document.createDocumentFragment();
-          Array.from(node.childNodes).forEach(child => frag.appendChild(cleanNode(child)));
-          return frag;
-        }
-
-        const el = document.createElement(tag.toLowerCase());
-        if (tag === 'A') {
-          const rawHref = (node.getAttribute('href') || '').trim();
-          const safeHref = /^(https?:\/\/|mailto:)/i.test(rawHref) ? rawHref : '#';
-          el.setAttribute('href', safeHref);
-          el.setAttribute('target', '_blank');
-          el.setAttribute('rel', 'noopener noreferrer');
-        }
-        Array.from(node.childNodes).forEach(child => el.appendChild(cleanNode(child)));
-        return el;
       }
 
-      const out = document.createElement('div');
-      Array.from(container.childNodes).forEach(child => out.appendChild(cleanNode(child)));
-      return out.innerHTML.trim();
-    }
-
-    function applyRichTextFormat(action) {
-      const editor = document.getElementById('edit-conf-long-desc-editor');
-      if (!editor) return;
-      editor.focus();
-      if (action === 'heading1') {
-        document.execCommand('formatBlock', false, '<h2>');
-      } else if (action === 'heading2') {
-        document.execCommand('formatBlock', false, '<h3>');
-      } else if (action === 'bold') {
-        document.execCommand('bold', false, null);
-      } else if (action === 'italic') {
-        document.execCommand('italic', false, null);
-      } else if (action === 'underline') {
-        document.execCommand('underline', false, null);
+      if (hintEl) {
+        hintEl.textContent = extracted
+          ? `Connected Sheet ID: ${extracted} — Form columns and Drive uploads are auto-detected from Row 1 headers.`
+          : 'Form columns and Drive uploads are auto-detected from Row 1 headers.';
       }
       markEditConferenceDirty();
     }
@@ -2050,6 +2166,12 @@
         themesInput.value = Array.isArray(conf.themes) ? conf.themes.join('\n') : '';
       }
 
+      const sheetIdInput = document.getElementById('edit-conf-sheet-id-input');
+      if (sheetIdInput) {
+        sheetIdInput.value = conf.googleSheetId || '';
+      }
+      handleEditGoogleSheetIdInput();
+
       editScheduleDraft = conf.scheduleFile ? { ...conf.scheduleFile } : null;
       editAdditionalFilesDraft = Array.isArray(conf.additionalFiles)
         ? conf.additionalFiles.slice(0, 10).map(item => ({ ...item }))
@@ -2156,6 +2278,7 @@
       const startDate = document.getElementById('edit-conf-start-date').value;
       const endDate = document.getElementById('edit-conf-end-date').value;
       const rawThemes = document.getElementById('edit-conf-themes-input').value;
+      const googleSheetId = extractGoogleSheetId(document.getElementById('edit-conf-sheet-id-input')?.value || '');
 
       if (!name) return showError('Please enter the Conference Name.');
       if (!description) return showError('Please enter the Short Description.');
@@ -2197,6 +2320,7 @@
         detailedDescription,
         startDate,
         endDate,
+        googleSheetId,
         scheduleFile: editScheduleDraft ? { ...editScheduleDraft } : null,
         additionalFiles: cleanedAdditionalFiles,
         themes
@@ -2345,6 +2469,7 @@
         detailedDescription: '',
         startDate,
         endDate,
+        googleSheetId: '',
         themes: []
       };
 
@@ -2384,6 +2509,7 @@
       const daysLeftEl = document.getElementById('conf-detail-days-left');
       const scheduleEl = document.getElementById('conf-detail-schedule');
       const addFilesEl = document.getElementById('conf-detail-additional-files');
+      const sheetIdEl = document.getElementById('conf-detail-sheet-id');
       const themesEl = document.getElementById('conf-detail-themes');
 
       if (bcName) bcName.textContent = conf.name;
@@ -2479,6 +2605,25 @@
               }).join('')}
             </div>
           `;
+        }
+      }
+
+      if (sheetIdEl) {
+        const sheetId = String(conf.googleSheetId || '').trim();
+        if (sheetId) {
+          const sheetUrl = `https://docs.google.com/spreadsheets/d/${encodeURIComponent(sheetId)}/edit`;
+          sheetIdEl.innerHTML = `
+            <div class="inline-flex flex-wrap items-center gap-3 px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs sm:text-sm">
+              <i class="fa-solid fa-table text-emerald-600"></i>
+              <code class="font-mono font-semibold text-slate-800 break-all">${escapeHtml(sheetId)}</code>
+              <a href="${escapeHtml(sheetUrl)}" target="_blank" rel="noopener noreferrer" class="px-2.5 py-1 rounded-lg border border-slate-300 bg-white hover:bg-slate-100 text-slate-700 text-xs font-semibold transition inline-flex items-center gap-1.5">
+                <i class="fa-solid fa-arrow-up-right-from-square text-[11px]"></i>
+                <span>Open Sheet</span>
+              </a>
+            </div>
+          `;
+        } else {
+          sheetIdEl.innerHTML = `<span class="text-xs text-slate-400">No Google Sheet ID linked yet.</span>`;
         }
       }
 
@@ -3136,6 +3281,7 @@
       openAppConfirmDialog,
       cancelAppConfirmDialog,
       acceptAppConfirmDialog,
+      handleEditGoogleSheetIdInput,
       handleEditScheduleFileChange,
       clearEditScheduleFile,
       addEditAdditionalFileRow,
