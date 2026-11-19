@@ -87,6 +87,12 @@
                 </span>
                 <span id="nav-badge-users" class="text-[11px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded-full">0</span>
               </button>
+              <button data-tab="system-admin" onclick="switchTab('system-admin')" class="nav-tab w-full flex items-center justify-between px-3.5 py-2 rounded-xl text-xs font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-all">
+                <span class="flex items-center gap-2.5">
+                  <i class="fa-solid fa-user-shield w-4 text-center"></i>
+                  <span>System Admin</span>
+                </span>
+              </button>
             </div>
           </div>
         </nav>
@@ -167,12 +173,12 @@
             <i class="fa-solid fa-lock text-xl"></i>
           </div>
           <div class="space-y-1.5">
-            <h2 class="text-lg font-bold text-slate-900">Signed Out of NIWAS Conference Portal</h2>
-            <p class="text-xs sm:text-sm text-slate-500">
+            <h2 id="access-gate-title" class="text-lg font-bold text-slate-900">Signed Out of NIWAS Conference Portal</h2>
+            <p id="access-gate-message" class="text-xs sm:text-sm text-slate-500">
               Sign in with your Google Mail account to access your assigned conference workspace, or sign back in as the hardcoded Super Admin.
             </p>
           </div>
-          <div class="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+          <div id="access-gate-actions" class="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
             <button type="button" onclick="signInWithGoogleAccount()" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs sm:text-sm font-semibold shadow-sm transition flex items-center justify-center gap-2">
               <i class="fa-brands fa-google"></i>
               <span>Sign in with Google</span>
@@ -348,7 +354,7 @@
 
               <div>
                 <h4 class="text-sm font-bold text-slate-900">Add User</h4>
-                <p class="text-xs text-slate-500 mt-0.5">Assign Admin, Editorial Member, or Reviewer accounts under this conference.</p>
+                <p class="text-xs text-slate-500 mt-0.5">Assign Conference Admin, Editorial Member, or Reviewer accounts under this conference.</p>
               </div>
 
               <form id="users-page-user-form" onsubmit="handleAddUserFromUsersPage(event)" class="space-y-3">
@@ -368,7 +374,7 @@
                   <div class="md:col-span-2">
                     <label for="users-page-user-role" class="block text-xs font-semibold text-slate-700 mb-1">Role <span class="text-rose-500">*</span></label>
                     <select id="users-page-user-role" onchange="handleUsersPageRoleChange()" class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                      <option value="Admin">Admin</option>
+                      <option value="Conference Admin">Conference Admin</option>
                       <option value="Scrutinizer">Scrutinizer</option>
                       <option value="Editorial Member">Editorial Member</option>
                       <option value="Reviewer">Reviewer</option>
@@ -452,6 +458,49 @@
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+
+        <!-- VIEW 5C: SYSTEM ADMIN (`system-admin` — Settings Access Only) -->
+        <div id="view-system-admin" class="hidden space-y-6">
+          <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-4 sm:p-6 space-y-4">
+            <div>
+              <h3 class="text-sm sm:text-base font-bold text-slate-900">Add System Admin</h3>
+              <p class="text-xs text-slate-500 mt-0.5">
+                System Admins hold system-wide administrative authority across all conferences. Design and code-level controls remain restricted exclusively to <strong class="text-slate-700">director@spmniwas.in</strong>.
+              </p>
+            </div>
+
+            <form id="system-admin-form" onsubmit="handleAddSystemAdmin(event)" class="space-y-3">
+              <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+                <div class="md:col-span-5">
+                  <label for="sysadmin-name-input" class="block text-xs font-semibold text-slate-700 mb-1">Name <span class="text-rose-500">*</span></label>
+                  <input id="sysadmin-name-input" type="text" required="" oninput="formatTitleCaseInput(this)" placeholder="Dr. Rajesh Kumar" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div class="md:col-span-5">
+                  <label for="sysadmin-email-input" class="block text-xs font-semibold text-slate-700 mb-1">Google Mail <span class="text-rose-500">*</span></label>
+                  <input id="sysadmin-email-input" type="email" required="" placeholder="rajesh.kumar@gmail.com" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div class="md:col-span-2">
+                  <button type="submit" class="w-full px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs sm:text-sm font-semibold shadow-sm transition flex items-center justify-center gap-1.5">
+                    <i class="fa-solid fa-plus text-xs"></i>
+                    <span>Add</span>
+                  </button>
+                </div>
+              </div>
+              <p id="system-admin-form-error" class="hidden text-xs font-medium text-rose-600 bg-rose-50 border border-rose-200 rounded-xl px-3.5 py-2"></p>
+            </form>
+          </div>
+
+          <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+            <div class="px-5 sm:px-6 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between gap-3">
+              <div class="flex items-center gap-2">
+                <i class="fa-solid fa-user-shield text-slate-600"></i>
+                <h3 class="text-sm font-bold text-slate-900">Assigned System Admins</h3>
+                <span id="system-admins-count-badge" class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-slate-200/80 text-slate-700">0</span>
+              </div>
+            </div>
+            <div id="system-admins-list-container" class="p-4 sm:p-6"></div>
           </div>
         </div>
 
@@ -1003,10 +1052,15 @@
         canAccessSettings: true,
         note: 'Hardcoded System Account (director@spmniwas.in)'
       },
-      'Admin': {
+      'Conference Admin': {
         badgeClass: 'bg-slate-100 text-slate-700 border border-slate-200',
         canAccessSettings: true,
-        note: 'Admin (Settings Access)'
+        note: 'Conference Admin (Settings Access)'
+      },
+      'System Admin': {
+        badgeClass: 'bg-slate-100 text-slate-800 border border-slate-200',
+        canAccessSettings: true,
+        note: 'System-Wide Governance (No Design/Code Access)'
       },
       'Scrutinizer': {
         badgeClass: 'bg-slate-100 text-slate-700 border border-slate-200',
@@ -1022,11 +1076,6 @@
         badgeClass: 'bg-slate-100 text-slate-700 border border-slate-200',
         canAccessSettings: false,
         note: 'Peer Reviewer'
-      },
-      'Guest': {
-        badgeClass: 'bg-slate-100 text-slate-600 border border-slate-200',
-        canAccessSettings: false,
-        note: 'Unassigned Account'
       }
     };
 
@@ -1059,6 +1108,7 @@
       isLoggedIn: true,
       activeRole: 'Super Admin',
       users: [],
+      systemAdmins: [],
       conferences: []
     };
 
@@ -1067,12 +1117,21 @@
         const raw = safeStorage.getItem(STORAGE_KEY);
         if (!raw) return JSON.parse(JSON.stringify(DEFAULT_STATE));
         const parsed = JSON.parse(raw);
-        const loadedRole = ROLE_CONFIG[parsed.activeRole] ? parsed.activeRole : 'Super Admin';
+        const rawLoadedRole = parsed.activeRole === 'Admin' ? 'Conference Admin' : parsed.activeRole;
+        const loadedRole = ROLE_CONFIG[rawLoadedRole] ? rawLoadedRole : 'Super Admin';
+        const systemAdmins = Array.isArray(parsed.systemAdmins) ? parsed.systemAdmins : [];
+        const conferences = Array.isArray(parsed.conferences) ? parsed.conferences.map(c => ({
+          ...c,
+          members: Array.isArray(c.members)
+            ? c.members.map(m => ({ ...m, role: m.role === 'Admin' ? 'Conference Admin' : m.role }))
+            : []
+        })) : [];
         return {
           isLoggedIn: parsed.isLoggedIn !== undefined ? Boolean(parsed.isLoggedIn) : true,
           activeRole: loadedRole,
           users: [],
-          conferences: Array.isArray(parsed.conferences) ? parsed.conferences : []
+          systemAdmins,
+          conferences
         };
       } catch {
         return JSON.parse(JSON.stringify(DEFAULT_STATE));
@@ -1086,35 +1145,54 @@
       return state.activeRole === 'Super Admin';
     }
 
+    function normalizeRoleName(role) {
+      return role === 'Admin' ? 'Conference Admin' : role;
+    }
+
+    function isEmailSystemAdmin(email) {
+      const normalized = String(email || '').toLowerCase().trim();
+      if (!normalized) return false;
+      return (state.systemAdmins || []).some(
+        sa => String(sa.email || '').toLowerCase().trim() === normalized
+      );
+    }
+
     function resolveEffectiveUserRole() {
       if (currentGoogleUser && currentGoogleUser.email) {
         const email = String(currentGoogleUser.email).toLowerCase().trim();
         if (email === SUPER_ADMIN_EMAIL) return 'Super Admin';
+        if (isEmailSystemAdmin(email)) return 'System Admin';
 
         const matchedRoles = [];
         (state.conferences || []).forEach(conf => {
           if (conf.isClosed || !Array.isArray(conf.members)) return;
           conf.members.forEach(m => {
-            if (String(m.email || '').toLowerCase().trim() === email && m.role && m.role !== 'Super Admin') {
-              matchedRoles.push(m.role);
+            const normalized = normalizeRoleName(m.role);
+            if (String(m.email || '').toLowerCase().trim() === email && normalized && normalized !== 'Super Admin') {
+              matchedRoles.push(normalized);
             }
           });
         });
 
-        if (matchedRoles.includes('Admin')) return 'Admin';
+        if (matchedRoles.includes('Conference Admin')) return 'Conference Admin';
         if (matchedRoles.includes('Editorial Member')) return 'Editorial Member';
         if (matchedRoles.includes('Scrutinizer')) return 'Scrutinizer';
         if (matchedRoles.includes('Reviewer')) return 'Reviewer';
-        return 'Guest';
+        return null;
       }
 
-      if (state.activeRole === 'Super Admin') return 'Super Admin';
-      return ROLE_CONFIG[state.activeRole] && state.activeRole !== 'Super Admin' ? state.activeRole : 'Guest';
+      const normalizedStateRole = normalizeRoleName(state.activeRole);
+      if (normalizedStateRole === 'Super Admin') return 'Super Admin';
+      return ROLE_CONFIG[normalizedStateRole] && normalizedStateRole !== 'Super Admin' ? normalizedStateRole : null;
+    }
+
+    function hasAuthorizedPortalAccess() {
+      return Boolean(state.isLoggedIn && resolveEffectiveUserRole());
     }
 
     function canCurrentUserAccessSettings() {
       const effectiveRole = resolveEffectiveUserRole();
-      return effectiveRole === 'Admin' || isHardcodedSuperAdminSession();
+      return effectiveRole === 'Conference Admin' || effectiveRole === 'System Admin' || isHardcodedSuperAdminSession();
     }
 
     function getAllConferenceMembers() {
@@ -1152,11 +1230,467 @@
     let expandedSidebarConferenceId = null;
     let activeAdditionalFilePreviewIndex = null;
 
+    function getInitials(name) {
+      const cleaned = String(name || '').trim();
+      if (!cleaned) return 'U';
+      const parts = cleaned.split(/\s+/).filter(Boolean);
+      if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+      return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
+    }
+
+    function getActiveSessionInfo() {
+      if (currentGoogleUser && currentGoogleUser.email) {
+        const email = String(currentGoogleUser.email).toLowerCase().trim();
+        const isSuper = email === SUPER_ADMIN_EMAIL;
+        const effectiveRole = resolveEffectiveUserRole() || (isSuper ? 'Super Admin' : '');
+        let designation = isSuper ? 'Conference Director' : '';
+        if (!designation) {
+          for (const conf of (state.conferences || [])) {
+            const m = (Array.isArray(conf.members) ? conf.members : []).find(
+              item => String(item.email || '').toLowerCase().trim() === email
+            );
+            if (m && m.designation) {
+              designation = m.designation;
+              break;
+            }
+          }
+        }
+        return {
+          name: currentGoogleUser.displayName || (isSuper ? 'Director (Super Admin)' : email),
+          email,
+          photoURL: currentGoogleUser.photoURL || '',
+          designation,
+          role: effectiveRole
+        };
+      }
+      return {
+        name: 'Director (Super Admin)',
+        email: SUPER_ADMIN_EMAIL,
+        photoURL: '',
+        designation: 'Conference Director',
+        role: resolveEffectiveUserRole() || 'Super Admin'
+      };
+    }
+
+    function getAccessibleActiveConferences() {
+      const todayISO = getTodayISO();
+      const role = normalizeRoleName(resolveEffectiveUserRole() || '');
+      const session = getActiveSessionInfo();
+      const userEmail = String(session.email || '').toLowerCase().trim();
+      const isGlobalAdmin = role === 'Super Admin' || role === 'System Admin' || userEmail === SUPER_ADMIN_EMAIL;
+
+      return (state.conferences || []).filter(conf => {
+        if (conf.isClosed) return false;
+        const isActive = !conf.endDate || conf.endDate >= todayISO;
+        if (!isActive) return false;
+        if (isGlobalAdmin) return true;
+        return (Array.isArray(conf.members) ? conf.members : []).some(
+          m => String(m.email || '').toLowerCase().trim() === userEmail
+        );
+      });
+    }
+
+    function updateCloudSyncIndicator(status) {
+      const dot = document.getElementById('cloud-sync-indicator');
+      if (!dot) return;
+      if (status === 'connected') {
+        dot.className = 'absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-white';
+        dot.title = 'Cloud Sync Active';
+      } else if (status === 'error') {
+        dot.className = 'absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-rose-500 ring-2 ring-white';
+        dot.title = 'Offline / Local Mode';
+      } else {
+        dot.className = 'absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-slate-400 animate-pulse ring-2 ring-white';
+        dot.title = 'Connecting to Cloud Sync...';
+      }
+    }
+
+    function syncUserPhotoAcrossConferences(user) {
+      if (!user || !user.email || !user.photoURL) return;
+      const email = String(user.email).toLowerCase().trim();
+      (state.conferences || []).forEach(conf => {
+        if (!Array.isArray(conf.members)) return;
+        let changed = false;
+        conf.members.forEach(m => {
+          if (String(m.email || '').toLowerCase().trim() === email && m.photoURL !== user.photoURL) {
+            m.photoURL = user.photoURL;
+            changed = true;
+          }
+        });
+        if (changed) syncConferenceToCloud(conf);
+      });
+    }
+
+    async function syncConferenceToCloud(conf) {
+      saveState();
+      if (!fbDb || !conf || !conf.id) return;
+      try {
+        await setDoc(doc(fbDb, 'artifacts', fbAppId, 'public', 'data', 'conferences', conf.id), conf);
+      } catch (err) {
+        console.warn('Firestore conference sync warning:', err);
+      }
+    }
+
+    async function syncSystemAdminsToCloud() {
+      saveState();
+      if (!fbDb) return;
+      try {
+        await setDoc(doc(fbDb, 'artifacts', fbAppId, 'public', 'data', 'settings', 'systemAdmins'), {
+          list: state.systemAdmins || [],
+          updatedAt: Date.now()
+        });
+      } catch (err) {
+        console.warn('Firestore systemAdmins sync warning:', err);
+      }
+    }
+
+    function initFirebaseSync() {
+      try {
+        const config = typeof __firebase_config !== 'undefined' && __firebase_config
+          ? JSON.parse(__firebase_config)
+          : DEFAULT_FIREBASE_CONFIG;
+        const app = initializeApp(config);
+        fbAuth = getAuth(app);
+        fbDb = getFirestore(app);
+
+        onAuthStateChanged(fbAuth, async (user) => {
+          fbUser = user || null;
+          if (user && !user.isAnonymous && user.email) {
+            currentGoogleUser = {
+              uid: user.uid,
+              displayName: user.displayName || user.email,
+              email: user.email.toLowerCase().trim(),
+              photoURL: user.photoURL || ''
+            };
+            state.isLoggedIn = true;
+            syncUserPhotoAcrossConferences(currentGoogleUser);
+            saveState();
+          }
+          renderAll();
+        });
+
+        const startAuthAndListeners = async () => {
+          try {
+            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+              await signInWithCustomToken(fbAuth, __initial_auth_token);
+            } else if (!fbAuth.currentUser) {
+              await signInAnonymously(fbAuth);
+            }
+          } catch (authErr) {
+            console.warn('Firebase initial auth warning:', authErr);
+          }
+
+          onSnapshot(
+            collection(fbDb, 'artifacts', fbAppId, 'public', 'data', 'conferences'),
+            (snap) => {
+              const cloudConfs = [];
+              snap.forEach(d => {
+                const data = d.data();
+                if (data && data.id) {
+                  cloudConfs.push({
+                    ...data,
+                    members: Array.isArray(data.members)
+                      ? data.members.map(m => ({ ...m, role: normalizeRoleName(m.role) }))
+                      : []
+                  });
+                }
+              });
+              cloudConfs.sort((a, b) => Number(b.createdAt || 0) - Number(a.createdAt || 0));
+              state.conferences = cloudConfs;
+              saveState();
+              updateCloudSyncIndicator('connected');
+              renderAll();
+            },
+            (err) => {
+              console.warn('Firestore conferences listener error:', err);
+              updateCloudSyncIndicator('error');
+            }
+          );
+
+          onSnapshot(
+            doc(fbDb, 'artifacts', fbAppId, 'public', 'data', 'settings', 'systemAdmins'),
+            (docSnap) => {
+              if (docSnap.exists()) {
+                const data = docSnap.data();
+                state.systemAdmins = Array.isArray(data.list) ? data.list : [];
+                saveState();
+                renderAll();
+              }
+            },
+            (err) => {
+              console.warn('Firestore systemAdmins listener error:', err);
+            }
+          );
+        };
+
+        startAuthAndListeners();
+      } catch (err) {
+        console.warn('Firebase initialization warning:', err);
+        updateCloudSyncIndicator('error');
+      }
+    }
+
+    function toggleMobileNav() {
+      const nav = document.getElementById('sidebar-nav');
+      if (!nav) return;
+      nav.classList.toggle('hidden');
+      nav.classList.toggle('flex');
+    }
+
+    function toggleAccountMenu(event) {
+      if (event) event.stopPropagation();
+      const menu = document.getElementById('account-dropdown-menu');
+      if (!menu) return;
+      menu.classList.toggle('hidden');
+    }
+
+    document.addEventListener('click', (event) => {
+      const container = document.getElementById('account-gear-container');
+      const menu = document.getElementById('account-dropdown-menu');
+      if (container && menu && !container.contains(event.target)) {
+        menu.classList.add('hidden');
+      }
+    });
+
+    async function signInWithGoogleAccount() {
+      if (!fbAuth) {
+        showToast('Authentication service is initializing. Please try again.', 'warning');
+        return;
+      }
+      try {
+        const provider = new GoogleAuthProvider();
+        provider.setCustomParameters({ prompt: 'select_account' });
+        const result = await signInWithPopup(fbAuth, provider);
+        if (result && result.user && result.user.email) {
+          currentGoogleUser = {
+            uid: result.user.uid,
+            displayName: result.user.displayName || result.user.email,
+            email: result.user.email.toLowerCase().trim(),
+            photoURL: result.user.photoURL || ''
+          };
+          state.isLoggedIn = true;
+          syncUserPhotoAcrossConferences(currentGoogleUser);
+          saveState();
+          renderAll();
+          if (hasAuthorizedPortalAccess()) {
+            switchTab('overview');
+            showToast(`Signed in as ${currentGoogleUser.displayName}`, 'success');
+          }
+        }
+      } catch (err) {
+        console.warn('Google sign-in error:', err);
+        showToast(err && err.message ? err.message : 'Google Sign-In was cancelled or failed.', 'error');
+      }
+    }
+
+    async function signOutGoogleAccount() {
+      const menu = document.getElementById('account-dropdown-menu');
+      if (menu) menu.classList.add('hidden');
+      currentGoogleUser = null;
+      state.isLoggedIn = false;
+      state.activeRole = '';
+      saveState();
+      try {
+        if (fbAuth) await signOut(fbAuth);
+      } catch (err) {
+        console.warn('Sign-out warning:', err);
+      }
+      renderAll();
+      showToast('Signed out of NIWAS Conference Portal.', 'info');
+    }
+
+    function resumeSuperAdminSession() {
+      currentGoogleUser = null;
+      state.isLoggedIn = true;
+      state.activeRole = 'Super Admin';
+      saveState();
+      renderAll();
+      switchTab('overview');
+      showToast('Signed in as Director (Super Admin).', 'success');
+    }
+
+    function renderAccountUI() {
+      const gateEl = document.getElementById('access-gate-section');
+      const gateTitleEl = document.getElementById('access-gate-title');
+      const gateMsgEl = document.getElementById('access-gate-message');
+      const gateActionsEl = document.getElementById('access-gate-actions');
+      const signInBtn = document.getElementById('google-signin-btn');
+      const gearContainer = document.getElementById('account-gear-container');
+      const settingsSection = document.getElementById('sidebar-settings-section');
+
+      const allViews = ['overview', 'papers', 'desk', 'reviews', 'conf-workspace', 'conferences', 'users-permissions', 'system-admin', 'conference-details', 'edit-conference'];
+      const authorized = hasAuthorizedPortalAccess();
+
+      if (settingsSection) {
+        if (authorized && canCurrentUserAccessSettings()) {
+          settingsSection.classList.remove('hidden');
+        } else {
+          settingsSection.classList.add('hidden');
+        }
+      }
+
+      if (!state.isLoggedIn) {
+        if (signInBtn) signInBtn.classList.remove('hidden');
+        if (gearContainer) gearContainer.classList.add('hidden');
+        allViews.forEach(v => document.getElementById(`view-${v}`)?.classList.add('hidden'));
+        if (gateEl) {
+          gateEl.classList.remove('hidden');
+          if (gateTitleEl) gateTitleEl.textContent = 'Signed Out of NIWAS Conference Portal';
+          if (gateMsgEl) gateMsgEl.textContent = 'Sign in with your Google Mail account to access your assigned conference workspace, or sign back in as the hardcoded Super Admin.';
+          if (gateActionsEl) {
+            gateActionsEl.innerHTML = `
+              <button type="button" onclick="signInWithGoogleAccount()" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs sm:text-sm font-semibold shadow-sm transition flex items-center justify-center gap-2">
+                <i class="fa-brands fa-google"></i>
+                <span>Sign in with Google</span>
+              </button>
+              <button type="button" onclick="resumeSuperAdminSession()" class="w-full sm:w-auto px-4 py-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs sm:text-sm font-semibold transition">
+                Sign in as Super Admin
+              </button>
+            `;
+          }
+        }
+        return;
+      }
+
+      if (signInBtn) signInBtn.classList.add('hidden');
+      if (gearContainer) gearContainer.classList.remove('hidden');
+
+      const session = getActiveSessionInfo();
+      const effectiveRole = resolveEffectiveUserRole();
+
+      const photoEl = document.getElementById('account-menu-photo');
+      const initialsEl = document.getElementById('account-menu-initials');
+      const nameEl = document.getElementById('account-menu-name');
+      const desigEl = document.getElementById('account-menu-designation');
+      const emailEl = document.getElementById('account-menu-email');
+      const roleBadgeEl = document.getElementById('account-menu-role-badge');
+
+      if (nameEl) nameEl.textContent = session.name;
+      if (desigEl) desigEl.textContent = session.designation || (effectiveRole || 'Unassigned Account');
+      if (emailEl) emailEl.textContent = session.email;
+      if (roleBadgeEl) roleBadgeEl.textContent = `Role: ${effectiveRole || 'No Role Assigned'}`;
+
+      if (photoEl && initialsEl) {
+        if (session.photoURL) {
+          photoEl.src = session.photoURL;
+          photoEl.classList.remove('hidden');
+          initialsEl.classList.add('hidden');
+        } else {
+          photoEl.classList.add('hidden');
+          initialsEl.textContent = getInitials(session.name);
+          initialsEl.classList.remove('hidden');
+        }
+      }
+
+      if (!authorized) {
+        allViews.forEach(v => document.getElementById(`view-${v}`)?.classList.add('hidden'));
+        if (gateEl) {
+          gateEl.classList.remove('hidden');
+          if (gateTitleEl) gateTitleEl.textContent = 'Access Not Granted';
+          if (gateMsgEl) {
+            gateMsgEl.textContent = `The account ${session.email} has not been assigned a role in any active conference. Please contact a System Admin or Conference Admin.`;
+          }
+          if (gateActionsEl) {
+            gateActionsEl.innerHTML = `
+              <button type="button" onclick="signOutGoogleAccount()" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs sm:text-sm font-semibold shadow-sm transition flex items-center justify-center gap-2">
+                <i class="fa-solid fa-right-from-bracket"></i>
+                <span>Sign Out &amp; Switch Account</span>
+              </button>
+            `;
+          }
+        }
+        return;
+      }
+
+      if (gateEl) gateEl.classList.add('hidden');
+
+      const roleMeta = ROLE_CONFIG[effectiveRole] || ROLE_CONFIG['Super Admin'];
+      const ovWelcome = document.getElementById('overview-welcome-title');
+      const ovPill = document.getElementById('overview-role-pill');
+      const ovEmail = document.getElementById('overview-account-email');
+      const ovNote = document.getElementById('overview-role-note');
+      const ovSettings = document.getElementById('overview-settings-access');
+      const ovCurrentRole = document.getElementById('overview-current-role');
+
+      if (ovWelcome) ovWelcome.textContent = `Welcome, ${session.name}`;
+      if (ovPill) ovPill.textContent = effectiveRole;
+      if (ovEmail) ovEmail.textContent = session.email;
+      if (ovNote) ovNote.textContent = roleMeta.note;
+      if (ovCurrentRole) ovCurrentRole.textContent = effectiveRole;
+      if (ovSettings) {
+        ovSettings.textContent = canCurrentUserAccessSettings()
+          ? 'You have administrative access to Settings (Conference, Users & Permissions, and System Admin).'
+          : 'Select an active conference from the left menu to access your assigned workspace.';
+      }
+    }
+
+    function removeSystemAdmin(sysAdminId) {
+      if (!canCurrentUserAccessSettings()) return;
+      const target = (state.systemAdmins || []).find(sa => sa.id === sysAdminId);
+      if (!target) return;
+      openAppConfirmDialog({
+        title: 'Remove System Admin',
+        subtitle: 'Revoke system-wide administrative access.',
+        message: `Are you sure you want to remove ${target.name} (${target.email}) from System Admins?`,
+        iconClass: 'fa-solid fa-user-minus',
+        tone: 'danger',
+        cancelLabel: 'Cancel',
+        confirmLabel: 'Remove',
+        confirmIconClass: 'fa-solid fa-trash-can',
+        onConfirm: () => {
+          state.systemAdmins = (state.systemAdmins || []).filter(sa => sa.id !== sysAdminId);
+          syncSystemAdminsToCloud();
+          renderSystemAdminsList();
+          showToast(`Removed ${target.name} from System Admins.`, 'info');
+        }
+      });
+    }
+
+    function toggleAddedUsersSort(field) {
+      if (addedUsersSort.field === field) {
+        addedUsersSort.dir = addedUsersSort.dir === 'asc' ? 'desc' : 'asc';
+      } else {
+        addedUsersSort = { field, dir: 'asc' };
+      }
+      renderUsersPageSelectedConferencePanel();
+    }
+
+    function removeUserFromConference(conferenceId, memberId) {
+      if (!canCurrentUserAccessSettings()) return;
+      const conf = (state.conferences || []).find(c => c.id === conferenceId);
+      if (!conf || conf.isClosed) return;
+      const member = (conf.members || []).find(m => m.id === memberId);
+      if (!member) return;
+
+      openAppConfirmDialog({
+        title: 'Remove Conference User',
+        subtitle: conf.name,
+        message: `Are you sure you want to remove ${member.name} (${normalizeRoleName(member.role)}) from this conference?`,
+        iconClass: 'fa-solid fa-user-minus',
+        tone: 'danger',
+        cancelLabel: 'Cancel',
+        confirmLabel: 'Remove User',
+        confirmIconClass: 'fa-solid fa-trash-can',
+        onConfirm: () => {
+          conf.members = (conf.members || []).filter(m => m.id !== memberId);
+          conf.updatedAt = Date.now();
+          if (selectedReviewerIdForMapping === memberId) {
+            selectedReviewerIdForMapping = null;
+          }
+          syncConferenceToCloud(conf);
+          renderAll();
+          renderUsersPageSelectedConferencePanel();
+          showToast(`Removed ${member.name} from ${conf.name}.`, 'info');
+        }
+      });
+    }
+
     function saveState() {
       safeStorage.setItem(STORAGE_KEY, JSON.stringify({
         isLoggedIn: state.isLoggedIn,
         activeRole: state.activeRole,
         users: [],
+        systemAdmins: state.systemAdmins || [],
         conferences: state.conferences || []
       }));
     }
@@ -1222,380 +1756,131 @@
       }
     }
 
-    function updateCloudIndicator(status, title) {
-      const dot = document.getElementById('cloud-sync-indicator');
-      if (!dot) return;
-      dot.className = 'absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full ring-2 ring-white';
-      if (status === 'connected') {
-        dot.classList.add('bg-emerald-500');
-        dot.title = title || 'Cloud Sync Active';
-      } else if (status === 'error') {
-        dot.classList.add('bg-rose-500');
-        dot.title = title || 'Local Storage Mode';
-      } else {
-        dot.classList.add('bg-slate-400', 'animate-pulse');
-        dot.title = title || 'Connecting...';
-      }
-    }
-
-    async function syncConferenceToCloud(conf) {
-      saveState();
-      if (!fbDb || !fbUser) return;
-      try {
-        const ref = doc(fbDb, 'artifacts', fbAppId, 'public', 'data', 'conferences', conf.id);
-        await setDoc(ref, {
-          ...conf,
-          updatedAt: Date.now()
-        }, { merge: true });
-      } catch (err) {
-        console.warn('Firestore conference sync skipped:', err);
-      }
-    }
-
-    async function removeConferenceFromCloud(confId) {
-      saveState();
-      if (!fbDb || !fbUser) return;
-      try {
-        const ref = doc(fbDb, 'artifacts', fbAppId, 'public', 'data', 'conferences', confId);
-        await deleteDoc(ref);
-      } catch (err) {
-        console.warn('Firestore conference delete skipped:', err);
-      }
-    }
-
-    function initFirebaseSync() {
-      try {
-        const rawConfig = typeof __firebase_config !== 'undefined' && __firebase_config
-          ? JSON.parse(__firebase_config)
-          : DEFAULT_FIREBASE_CONFIG;
-        const app = initializeApp(rawConfig);
-        fbAuth = getAuth(app);
-        fbDb = getFirestore(app);
-
-        onAuthStateChanged(fbAuth, async (user) => {
-          fbUser = user;
-          if (!user) {
-            try {
-              if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                await signInWithCustomToken(fbAuth, __initial_auth_token);
-              } else {
-                await signInAnonymously(fbAuth);
-              }
-            } catch {
-              updateCloudIndicator('error', 'Offline / Local Storage Mode');
-            }
-            return;
-          }
-
-          if (!user.isAnonymous && user.email) {
-            currentGoogleUser = {
-              name: user.displayName || user.email.split('@')[0],
-              email: user.email.toLowerCase(),
-              photoURL: user.photoURL || ''
-            };
-          }
-
-          updateCloudIndicator('connected', 'Synced with Firestore');
-          const confCol = collection(fbDb, 'artifacts', fbAppId, 'public', 'data', 'conferences');
-          onSnapshot(confCol, (snapshot) => {
-            const remoteConfs = [];
-            snapshot.forEach(docSnap => {
-              const data = docSnap.data();
-              if (data && data.id) {
-                remoteConfs.push({
-                  ...data,
-                  themes: Array.isArray(data.themes) ? data.themes : [],
-                  members: Array.isArray(data.members) ? data.members : []
-                });
-              }
-            });
-
-            if (remoteConfs.length > 0) {
-              const mergedMap = new Map();
-              (state.conferences || []).forEach(c => mergedMap.set(c.id, c));
-              remoteConfs.forEach(rc => {
-                const existing = mergedMap.get(rc.id);
-                if (!existing || (rc.updatedAt || 0) >= (existing.updatedAt || 0)) {
-                  mergedMap.set(rc.id, rc);
-                }
-              });
-              state.conferences = Array.from(mergedMap.values());
-              saveState();
-              renderAll();
-            } else if ((state.conferences || []).length > 0) {
-              state.conferences.forEach(c => syncConferenceToCloud(c));
-            }
-          }, (err) => {
-            console.warn('Firestore snapshot warning:', err);
-            updateCloudIndicator('error', 'Local Storage Mode');
-          });
-        });
-      } catch (err) {
-        console.warn('Firebase initialization fallback to local storage:', err);
-        updateCloudIndicator('error', 'Local Storage Mode');
-      }
-    }
-
-    function getActiveSessionInfo() {
-      const role = resolveEffectiveUserRole();
-      if (currentGoogleUser && currentGoogleUser.email) {
-        const email = String(currentGoogleUser.email).toLowerCase().trim();
-        if (email === SUPER_ADMIN_EMAIL) {
-          return {
-            name: currentGoogleUser.name || 'Director (Super Admin)',
-            designation: 'Conference Director',
-            email: SUPER_ADMIN_EMAIL,
-            photoURL: currentGoogleUser.photoURL || '',
-            role: 'Super Admin'
-          };
-        }
-        const matchedMember = getAllConferenceMembers().find(
-          m => (m.email || '').toLowerCase().trim() === email
-        );
-        return {
-          name: currentGoogleUser.name || (matchedMember ? matchedMember.name : currentGoogleUser.email),
-          designation: matchedMember && matchedMember.designation ? matchedMember.designation : role,
-          email: currentGoogleUser.email,
-          photoURL: currentGoogleUser.photoURL || '',
-          role
-        };
-      }
-      if (role === 'Super Admin') {
-        return {
-          name: 'Director (Super Admin)',
-          designation: 'Conference Director',
-          email: SUPER_ADMIN_EMAIL,
-          photoURL: '',
-          role: 'Super Admin'
-        };
-      }
-      const memberForRole = getAllConferenceMembers().find(m => m.role === role);
-      if (memberForRole) {
-        return {
-          name: memberForRole.name,
-          designation: memberForRole.designation || role,
-          email: memberForRole.email,
-          photoURL: '',
-          role
-        };
-      }
-      return {
-        name: `Demo ${role}`,
-        designation: role,
-        email: `${role.toLowerCase().replace(/\s+/g, '.')}@spmniwas.in`,
-        photoURL: '',
-        role
-      };
-    }
-
-    function getInitials(name) {
-      const parts = String(name || 'U').trim().split(/\s+/);
-      if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-    }
-
-    function renderAccountUI() {
-      const gate = document.getElementById('access-gate-section');
-      const signInBtn = document.getElementById('google-signin-btn');
-      const gearContainer = document.getElementById('account-gear-container');
-      const settingsSection = document.getElementById('sidebar-settings-section');
-
-      if (!state.isLoggedIn) {
-        if (gate) gate.classList.remove('hidden');
-        if (signInBtn) signInBtn.classList.remove('hidden');
-        if (gearContainer) gearContainer.classList.add('hidden');
-        ['overview', 'conferences', 'users-permissions', 'conference-details', 'edit-conference', 'conf-workspace'].forEach(id => {
-          const el = document.getElementById(`view-${id}`);
-          if (el) el.classList.add('hidden');
-        });
-        return;
-      }
-
-      if (gate) gate.classList.add('hidden');
-      if (signInBtn) signInBtn.classList.add('hidden');
-      if (gearContainer) gearContainer.classList.remove('hidden');
-
+    async function sendUserAssignmentEmail({
+      name,
+      email,
+      role,
+      designation = '',
+      conferenceName = '',
+      conferenceDates = '',
+      themes = []
+    }) {
       const session = getActiveSessionInfo();
-      const roleMeta = ROLE_CONFIG[session.role] || ROLE_CONFIG['Guest'];
-      const hasSettingsAccess = canCurrentUserAccessSettings();
+      const addedByLabel = session && session.name
+        ? `${session.name} (${session.email})`
+        : 'NIWAS Conference Portal Administrator';
 
-      if (settingsSection) {
-        if (hasSettingsAccess) {
-          settingsSection.classList.remove('hidden');
-        } else {
-          settingsSection.classList.add('hidden');
-        }
-      }
+      const isSystemAdmin = role === 'System Admin';
+      const subject = isSystemAdmin
+        ? `NIWAS Conference Portal — Assigned as System Admin`
+        : `NIWAS Conference Portal — Assigned as ${role} (${conferenceName})`;
 
-      const photoEl = document.getElementById('account-menu-photo');
-      const initialsEl = document.getElementById('account-menu-initials');
-      if (photoEl && initialsEl) {
-        if (session.photoURL) {
-          photoEl.src = session.photoURL;
-          photoEl.classList.remove('hidden');
-          initialsEl.classList.add('hidden');
-        } else {
-          photoEl.classList.add('hidden');
-          initialsEl.textContent = getInitials(session.name);
-          initialsEl.classList.remove('hidden');
-        }
-      }
+      const themesList = Array.isArray(themes) && themes.length > 0 ? themes : [];
+      const themesHtmlRow = (!isSystemAdmin && role === 'Reviewer')
+        ? `
+          <tr>
+            <td style="padding: 8px 12px; border-bottom: 1px solid #e2e8f0; color: #64748b; font-weight: 600; width: 160px;">Assigned Themes</td>
+            <td style="padding: 8px 12px; border-bottom: 1px solid #e2e8f0; color: #0f172a;">${
+              themesList.length > 0
+                ? themesList.map(t => escapeHtml(t)).join(', ')
+                : 'To be mapped by Conference Admin'
+            }</td>
+          </tr>
+        `
+        : '';
 
-      const nameEl = document.getElementById('account-menu-name');
-      const desigEl = document.getElementById('account-menu-designation');
-      const emailEl = document.getElementById('account-menu-email');
-      const roleEl = document.getElementById('account-menu-role-badge');
-      if (nameEl) nameEl.textContent = session.name;
-      if (desigEl) desigEl.textContent = session.designation;
-      if (emailEl) emailEl.textContent = session.email;
-      if (roleEl) roleEl.textContent = `Role: ${session.role}`;
-
-      const welcomeTitle = document.getElementById('overview-welcome-title');
-      const rolePill = document.getElementById('overview-role-pill');
-      const accEmail = document.getElementById('overview-account-email');
-      const curRole = document.getElementById('overview-current-role');
-      const roleNote = document.getElementById('overview-role-note');
-      const settingsAccess = document.getElementById('overview-settings-access');
-      if (welcomeTitle) welcomeTitle.textContent = `Welcome, ${session.name}`;
-      if (rolePill) rolePill.textContent = session.role;
-      if (accEmail) accEmail.textContent = session.email;
-      if (curRole) curRole.textContent = session.role;
-      if (roleNote) roleNote.textContent = roleMeta.note;
-      if (settingsAccess) {
-        settingsAccess.textContent = hasSettingsAccess
-          ? 'Enabled — Settings → Conference & Users & Permissions are accessible.'
-          : 'Restricted — Settings is available exclusively to Admin users.';
-      }
-    }
-
-    function toggleAccountMenu(event) {
-      if (event) event.stopPropagation();
-      const menu = document.getElementById('account-dropdown-menu');
-      if (menu) menu.classList.toggle('hidden');
-    }
-
-    document.addEventListener('click', (e) => {
-      const container = document.getElementById('account-gear-container');
-      const menu = document.getElementById('account-dropdown-menu');
-      if (container && menu && !container.contains(e.target)) {
-        menu.classList.add('hidden');
-      }
-    });
-
-    async function signInWithGoogleAccount() {
-      if (!fbAuth) {
-        resumeSuperAdminSession();
-        return;
-      }
-      try {
-        const provider = new GoogleAuthProvider();
-        const result = await signInWithPopup(fbAuth, provider);
-        const user = result.user;
-        const email = (user.email || '').toLowerCase().trim();
-        currentGoogleUser = {
-          name: user.displayName || email.split('@')[0],
-          email,
-          photoURL: user.photoURL || ''
-        };
-
-        if (email === SUPER_ADMIN_EMAIL) {
-          state.activeRole = 'Super Admin';
-        } else {
-          let updatedAnyPhoto = false;
-          (state.conferences || []).forEach(conf => {
-            if (!Array.isArray(conf.members)) return;
-            conf.members.forEach(m => {
-              if ((m.email || '').toLowerCase().trim() === email) {
-                if (m.role === 'Super Admin') {
-                  m.role = 'Admin';
-                  updatedAnyPhoto = true;
-                }
-                if (user.photoURL && m.photoURL !== user.photoURL) {
-                  m.photoURL = user.photoURL;
-                  updatedAnyPhoto = true;
-                }
+      const htmlBody = `
+        <div style="font-family: Inter, Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #1e293b; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;">
+          <div style="background-color: #0f172a; color: #ffffff; padding: 20px 24px;">
+            <h2 style="margin: 0; font-size: 18px; font-weight: 700;">NIWAS Conference Manager</h2>
+            <p style="margin: 4px 0 0; font-size: 12px; color: #94a3b8;">Academic Paper &amp; Peer Review Portal</p>
+          </div>
+          <div style="padding: 24px; background-color: #ffffff; font-size: 14px; line-height: 1.6;">
+            <p style="margin-top: 0;">Dear <strong>${escapeHtml(name)}</strong>,</p>
+            <p>
+              You have been added to the <strong>NIWAS Conference Manager</strong> portal${
+                isSystemAdmin ? ' with system-wide administrative privileges.' : ` for <strong>${escapeHtml(conferenceName)}</strong>.`
               }
-            });
-            if (updatedAnyPhoto) {
-              syncConferenceToCloud(conf);
-            }
-          });
-          const resolvedRole = resolveEffectiveUserRole();
-          state.activeRole = resolvedRole;
-          if (resolvedRole === 'Guest') {
-            showToast('Signed in Google account is not yet assigned to a conference.', 'warning');
-          }
-        }
-        state.isLoggedIn = true;
-        saveState();
-        renderAll();
-        switchTab(currentTab);
-        showToast(`Signed in as ${currentGoogleUser.name}`, 'success');
-      } catch (err) {
-        showToast(err && err.message ? err.message : 'Google sign-in cancelled.', 'warning');
-      }
-    }
+            </p>
+            <table style="width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 13px; border: 1px solid #e2e8f0; border-radius: 8px;">
+              <tr>
+                <td style="padding: 8px 12px; border-bottom: 1px solid #e2e8f0; color: #64748b; font-weight: 600; width: 160px;">Assigned Role</td>
+                <td style="padding: 8px 12px; border-bottom: 1px solid #e2e8f0; color: #0f172a; font-weight: 700;">${escapeHtml(role)}</td>
+              </tr>
+              ${designation ? `
+              <tr>
+                <td style="padding: 8px 12px; border-bottom: 1px solid #e2e8f0; color: #64748b; font-weight: 600;">Designation</td>
+                <td style="padding: 8px 12px; border-bottom: 1px solid #e2e8f0; color: #0f172a;">${escapeHtml(designation)}</td>
+              </tr>` : ''}
+              ${!isSystemAdmin && conferenceName ? `
+              <tr>
+                <td style="padding: 8px 12px; border-bottom: 1px solid #e2e8f0; color: #64748b; font-weight: 600;">Conference</td>
+                <td style="padding: 8px 12px; border-bottom: 1px solid #e2e8f0; color: #0f172a; font-weight: 600;">${escapeHtml(conferenceName)}</td>
+              </tr>` : ''}
+              ${!isSystemAdmin && conferenceDates ? `
+              <tr>
+                <td style="padding: 8px 12px; border-bottom: 1px solid #e2e8f0; color: #64748b; font-weight: 600;">Schedule Dates</td>
+                <td style="padding: 8px 12px; border-bottom: 1px solid #e2e8f0; color: #0f172a;">${escapeHtml(conferenceDates)}</td>
+              </tr>` : ''}
+              ${themesHtmlRow}
+              <tr>
+                <td style="padding: 8px 12px; border-bottom: 1px solid #e2e8f0; color: #64748b; font-weight: 600;">Login Google Mail</td>
+                <td style="padding: 8px 12px; border-bottom: 1px solid #e2e8f0; color: #0f172a;">${escapeHtml(email)}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 12px; color: #64748b; font-weight: 600;">Added By</td>
+                <td style="padding: 8px 12px; color: #0f172a;">${escapeHtml(addedByLabel)}</td>
+              </tr>
+            </table>
+            <p style="margin: 20px 0;">
+              Please sign in using your Google Mail account (<strong>${escapeHtml(email)}</strong>) at the link below:
+            </p>
+            <p style="margin: 20px 0;">
+              <a href="${escapeHtml(PORTAL_LIVE_URL)}" style="display: inline-block; background-color: #0f172a; color: #ffffff; text-decoration: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; font-size: 13px;">
+                Open NIWAS Conference Portal
+              </a>
+            </p>
+            <p style="font-size: 12px; color: #64748b; margin-bottom: 0;">
+              Portal URL: <a href="${escapeHtml(PORTAL_LIVE_URL)}" style="color: #4f46e5;">${escapeHtml(PORTAL_LIVE_URL)}</a>
+            </p>
+          </div>
+        </div>
+      `;
 
-    async function signOutGoogleAccount() {
-      const menu = document.getElementById('account-dropdown-menu');
-      if (menu) menu.classList.add('hidden');
-      currentGoogleUser = null;
-      state.isLoggedIn = false;
-      saveState();
-      if (fbAuth) {
-        try {
-          await signOut(fbAuth);
-        } catch {}
-      }
-      renderAccountUI();
-      showToast('Logged out of NIWAS Conference Manager.', 'info');
-    }
+      const textLines = [
+        `Dear ${name},`,
+        '',
+        isSystemAdmin
+          ? `You have been added to the NIWAS Conference Manager portal as a System Admin.`
+          : `You have been added to the NIWAS Conference Manager portal for "${conferenceName}" as ${role}.`,
+        designation ? `Designation: ${designation}` : '',
+        !isSystemAdmin && conferenceDates ? `Schedule Dates: ${conferenceDates}` : '',
+        (!isSystemAdmin && role === 'Reviewer' && themesList.length > 0) ? `Assigned Themes: ${themesList.join(', ')}` : '',
+        `Login Google Mail: ${email}`,
+        `Added By: ${addedByLabel}`,
+        '',
+        `Sign in with your Google Mail account at: ${PORTAL_LIVE_URL}`
+      ].filter(Boolean);
 
-    function resumeSuperAdminSession() {
-      currentGoogleUser = null;
-      state.isLoggedIn = true;
-      state.activeRole = 'Super Admin';
-      saveState();
-      renderAll();
-      switchTab('overview');
-      showToast('Signed in as Director (Super Admin).', 'success');
-    }
-
-    function toggleMobileNav() {
-      const nav = document.getElementById('sidebar-nav');
-      if (!nav) return;
-      nav.classList.toggle('hidden');
-      nav.classList.toggle('flex');
-    }
-
-    function getAccessibleActiveConferences() {
-      const todayISO = getTodayISO();
-      const role = state.activeRole || 'Super Admin';
-      const session = getActiveSessionInfo();
-      const userEmail = String(session.email || '').toLowerCase().trim();
-      const isGlobalAdmin = role === 'Super Admin' || userEmail === SUPER_ADMIN_EMAIL;
-
-      return (state.conferences || []).filter(conf => {
-        if (conf.isClosed) return false;
-        const isActive = !conf.endDate || conf.endDate >= todayISO;
-        if (!isActive) return false;
-        if (isGlobalAdmin) return true;
-        const members = Array.isArray(conf.members) ? conf.members : [];
-        return members.some(m => String(m.email || '').toLowerCase().trim() === userEmail);
+      return sendPortalEmail({
+        to: email,
+        subject,
+        htmlBody,
+        textBody: textLines.join('\n')
       });
     }
 
     function getAllowedSectionsForConference(conf) {
-      const role = state.activeRole || 'Super Admin';
+      const role = normalizeRoleName(resolveEffectiveUserRole() || 'Super Admin');
       const session = getActiveSessionInfo();
       const userEmail = String(session.email || '').toLowerCase().trim();
-      if (role === 'Super Admin' || role === 'Admin' || userEmail === SUPER_ADMIN_EMAIL) {
+      if (role === 'Super Admin' || role === 'System Admin' || role === 'Conference Admin' || userEmail === SUPER_ADMIN_EMAIL) {
         return ['editors', 'reviewers', 'authors', 'papers'];
       }
       const member = (Array.isArray(conf?.members) ? conf.members : []).find(
         m => String(m.email || '').toLowerCase().trim() === userEmail
       );
-      const effectiveRole = member ? member.role : role;
+      const effectiveRole = normalizeRoleName(member ? member.role : role);
       if (effectiveRole === 'Reviewer') {
         return ['papers'];
       }
@@ -1630,7 +1915,7 @@
       const container = document.getElementById('sidebar-active-conferences-nav');
       if (!container) return;
 
-      if (!state.isLoggedIn) {
+      if (!hasAuthorizedPortalAccess()) {
         container.innerHTML = '';
         return;
       }
@@ -1848,6 +2133,9 @@
         } else {
           items.push({ label: 'Users & Permissions', action: null });
         }
+      } else if (tabId === 'system-admin') {
+        items.push({ label: 'Settings', action: "switchTab('conferences')" });
+        items.push({ label: 'System Admin', action: null });
       } else if (tabId === 'conference-details') {
         const conf = (state.conferences || []).find(c => c.id === selectedConferenceId);
         items.push({ label: 'Settings', action: "switchTab('conferences')" });
@@ -1872,13 +2160,13 @@
     }
 
     function switchTab(tabId) {
-      if (!state.isLoggedIn) {
+      if (!hasAuthorizedPortalAccess()) {
         renderAccountUI();
         return;
       }
 
       const hasSettingsAccess = canCurrentUserAccessSettings();
-      if ((tabId === 'conferences' || tabId === 'users-permissions' || tabId === 'conference-details' || tabId === 'edit-conference') && !hasSettingsAccess) {
+      if ((tabId === 'conferences' || tabId === 'users-permissions' || tabId === 'system-admin' || tabId === 'conference-details' || tabId === 'edit-conference') && !hasSettingsAccess) {
         tabId = 'overview';
       }
 
@@ -1887,7 +2175,7 @@
       const isConfWorkspaceTab = tabId === 'conf-editors' || tabId === 'conf-reviewers' || tabId === 'conf-authors' || tabId === 'conf-papers';
       const activeViewId = isConfWorkspaceTab ? 'conf-workspace' : tabId;
 
-      const views = ['overview', 'papers', 'desk', 'reviews', 'conf-workspace', 'conferences', 'users-permissions', 'conference-details', 'edit-conference'];
+      const views = ['overview', 'papers', 'desk', 'reviews', 'conf-workspace', 'conferences', 'users-permissions', 'system-admin', 'conference-details', 'edit-conference'];
       views.forEach(v => {
         const el = document.getElementById(`view-${v}`);
         if (el) {
@@ -1956,6 +2244,10 @@
         if (subEl) subEl.textContent = 'Select an active conference to add users and map reviewers to themes.';
         renderUsersActiveConferences();
         renderUsersPageSelectedConferencePanel();
+      } else if (tabId === 'system-admin') {
+        if (titleEl) titleEl.textContent = 'System Admin';
+        if (subEl) subEl.textContent = 'Grant system-wide administrative powers (design and code controls remain exclusive to director@spmniwas.in).';
+        renderSystemAdminsList();
       } else if (tabId === 'conference-details') {
         const conf = (state.conferences || []).find(c => c.id === selectedConferenceId);
         if (titleEl) titleEl.textContent = conf ? conf.name : 'Conference Details';
@@ -3018,372 +3310,34 @@
     }
 
     function isCurrentUserConferenceAdmin() {
-      const role = state.activeRole || 'Super Admin';
+      const role = normalizeRoleName(resolveEffectiveUserRole() || 'Super Admin');
       const session = getActiveSessionInfo();
       const userEmail = String(session.email || '').toLowerCase().trim();
-      return role === 'Super Admin' || role === 'Admin' || userEmail === SUPER_ADMIN_EMAIL;
-    }
-
-    function openCloseConferenceDialog() {
-      const conf = (state.conferences || []).find(c => c.id === selectedConferenceId);
-      if (!conf || conf.isClosed) return;
-      if (!isCurrentUserConferenceAdmin()) {
-        showToast('Only Admins can close a conference.', 'warning');
-        return;
-      }
-
-      const modal = document.getElementById('close-conference-modal');
-      const subtitleEl = document.getElementById('close-conf-modal-subtitle');
-      const inputEl = document.getElementById('close-conf-agree-input');
-      const confirmBtn = document.getElementById('close-conf-confirm-btn');
-      if (!modal) return;
-
-      if (subtitleEl) subtitleEl.textContent = conf.name || 'Irreversible governance lock';
-      if (inputEl) inputEl.value = '';
-      if (confirmBtn) confirmBtn.disabled = true;
-
-      modal.classList.remove('hidden');
-      if (inputEl) {
-        setTimeout(() => inputEl.focus(), 50);
-      }
-    }
-
-    function handleCloseConferenceAgreeInput() {
-      const inputEl = document.getElementById('close-conf-agree-input');
-      const confirmBtn = document.getElementById('close-conf-confirm-btn');
-      if (!inputEl || !confirmBtn) return;
-      confirmBtn.disabled = inputEl.value.trim() !== 'I agree';
-    }
-
-    function cancelCloseConferenceDialog() {
-      const modal = document.getElementById('close-conference-modal');
-      const inputEl = document.getElementById('close-conf-agree-input');
-      if (inputEl) inputEl.value = '';
-      if (modal) modal.classList.add('hidden');
-    }
-
-    function confirmCloseConference() {
-      const conf = (state.conferences || []).find(c => c.id === selectedConferenceId);
-      const inputEl = document.getElementById('close-conf-agree-input');
-      if (!conf || !inputEl || inputEl.value.trim() !== 'I agree') return;
-      if (!isCurrentUserConferenceAdmin()) {
-        showToast('Only Admins can close a conference.', 'warning');
-        return;
-      }
-
-      const session = getActiveSessionInfo();
-      conf.isClosed = true;
-      conf.closedAt = Date.now();
-      conf.closedBy = session.email || 'admin';
-      conf.updatedAt = Date.now();
-
-      if (usersPageSelectedConferenceId === conf.id) {
-        usersPageSelectedConferenceId = null;
-      }
-      if (activeWorkspaceConferenceId === conf.id) {
-        activeWorkspaceConferenceId = null;
-        activeWorkspaceSection = null;
-      }
-      if (expandedSidebarConferenceId === conf.id) {
-        expandedSidebarConferenceId = null;
-      }
-
-      cancelCloseConferenceDialog();
-      syncConferenceToCloud(conf);
-      renderAll();
-      switchTab('conference-details');
-      showToast(`Conference "${conf.name}" has been permanently closed.`, 'info');
-    }
-
-    function getEmbeddableDocumentUrl(url) {
-      const raw = String(url || '').trim();
-      if (!raw) return '';
-      const driveFileMatch = raw.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/);
-      if (driveFileMatch && driveFileMatch[1]) {
-        return `https://drive.google.com/file/d/${driveFileMatch[1]}/preview`;
-      }
-      const driveOpenMatch = raw.match(/drive\.google\.com\/open\?id=([a-zA-Z0-9_-]+)/);
-      if (driveOpenMatch && driveOpenMatch[1]) {
-        return `https://drive.google.com/file/d/${driveOpenMatch[1]}/preview`;
-      }
-      return raw;
-    }
-
-    function openAdditionalFilePreview(index) {
-      const conf = (state.conferences || []).find(c => c.id === selectedConferenceId);
-      if (!conf) return;
-      const files = Array.isArray(conf.additionalFiles) ? conf.additionalFiles : [];
-      if (index < 0 || index >= files.length) return;
-      activeAdditionalFilePreviewIndex = index;
-      renderConferenceDetailsView();
-    }
-
-    function closeAdditionalFilePreview() {
-      activeAdditionalFilePreviewIndex = null;
-      renderConferenceDetailsView();
-    }
-
-    function renderConferenceDetailsView() {
-      const conf = (state.conferences || []).find(c => c.id === selectedConferenceId);
-      if (!conf) return;
-
-      const standardRows = document.getElementById('conf-details-standard-rows');
-      const splitView = document.getElementById('conf-document-split-view');
-      const footerActionsEl = document.getElementById('conf-details-footer-actions');
-      const closeBtnEl = document.getElementById('conf-detail-close-btn');
-      const closedBannerEl = document.getElementById('conf-detail-closed-banner');
-      const splitFilesLeft = document.getElementById('conf-detail-split-files-left');
-      const viewerHeader = document.getElementById('conf-document-viewer-header');
-      const viewerBody = document.getElementById('conf-document-viewer-body');
-      const files = Array.isArray(conf.additionalFiles) ? conf.additionalFiles : [];
-      const isClosed = Boolean(conf.isClosed);
-      const canClose = !isClosed && isCurrentUserConferenceAdmin();
-
-      if (footerActionsEl) {
-        if (canClose) {
-          footerActionsEl.classList.remove('hidden');
-          if (closeBtnEl) closeBtnEl.classList.remove('hidden');
-        } else {
-          footerActionsEl.classList.add('hidden');
-        }
-      }
-
-      if (closedBannerEl) {
-        if (isClosed) closedBannerEl.classList.remove('hidden');
-        else closedBannerEl.classList.add('hidden');
-      }
-
-      if (
-        activeAdditionalFilePreviewIndex !== null &&
-        activeAdditionalFilePreviewIndex >= 0 &&
-        activeAdditionalFilePreviewIndex < files.length &&
-        standardRows &&
-        splitView &&
-        viewerHeader &&
-        viewerBody
-      ) {
-        const file = files[activeAdditionalFilePreviewIndex];
-        const label = file.title || file.uploadedFileName || 'Document';
-        const sizeText = formatFileSizeBytes(file.fileSize);
-        const sourceUrl = file.dataUrl || getEmbeddableDocumentUrl(file.fileUrl);
-        const isImage = Boolean(
-          (file.fileType && file.fileType.startsWith('image/')) ||
-          /\.(png|jpe?g|gif|webp|svg)(\?.*)?$/i.test(file.uploadedFileName || file.fileUrl || '')
-        );
-
-        standardRows.classList.add('hidden');
-        splitView.classList.remove('hidden');
-
-        if (splitFilesLeft) {
-          splitFilesLeft.innerHTML = files.map((f, idx) => {
-            const itemLabel = f.title || f.uploadedFileName || `Attachment ${idx + 1}`;
-            const isSelected = idx === activeAdditionalFilePreviewIndex;
-            const btnClass = isSelected
-              ? 'w-full text-left px-3 py-2.5 rounded-xl bg-indigo-50 border border-indigo-300 shadow-2xs transition flex items-center gap-2.5'
-              : 'w-full text-left px-3 py-2.5 rounded-xl bg-white hover:bg-indigo-50/70 border border-slate-200/90 hover:border-indigo-300 shadow-2xs transition flex items-center gap-2.5 group';
-            return `
-              <button type="button" onclick="openAdditionalFilePreview(${idx})" class="${btnClass}">
-                <i class="fa-solid fa-file-lines text-indigo-600 text-xs shrink-0"></i>
-                <span class="text-xs font-semibold ${isSelected ? 'text-indigo-800' : 'text-slate-800 group-hover:text-indigo-700'} truncate flex-1">${escapeHtml(itemLabel)}</span>
-                <i class="fa-solid fa-chevron-right text-[10px] ${isSelected ? 'text-indigo-600' : 'text-slate-400 group-hover:text-indigo-600'} shrink-0"></i>
-              </button>
-            `;
-          }).join('');
-        }
-
-        viewerHeader.innerHTML = `
-          <div class="flex items-center gap-2.5 min-w-0">
-            <div class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
-              <i class="fa-solid fa-file-lines text-sm"></i>
-            </div>
-            <div class="min-w-0">
-              <h3 class="text-xs sm:text-sm font-bold text-slate-900 truncate">${escapeHtml(label)}</h3>
-              ${sizeText ? `<p class="text-[11px] text-slate-500">${escapeHtml(sizeText)}</p>` : ''}
-            </div>
-          </div>
-          <div class="flex items-center gap-2 shrink-0">
-            ${file.dataUrl ? `<a href="${escapeHtml(file.dataUrl)}" download="${escapeHtml(file.uploadedFileName || label)}" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold transition inline-flex items-center gap-1.5"><i class="fa-solid fa-download text-[11px]"></i><span>Download</span></a>` : ''}
-            ${file.fileUrl ? `<a href="${escapeHtml(file.fileUrl)}" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-100 text-slate-700 text-xs font-semibold transition inline-flex items-center gap-1.5"><i class="fa-solid fa-arrow-up-right-from-square text-[11px]"></i><span>Open in New Tab</span></a>` : ''}
-          </div>
-        `;
-
-        if (!sourceUrl) {
-          viewerBody.innerHTML = `
-            <div class="p-8 text-center space-y-2">
-              <p class="text-sm font-semibold text-slate-700">No file content or URL attached to "${escapeHtml(label)}".</p>
-              <p class="text-xs text-slate-500">Edit the conference to upload a file or attach a valid document URL.</p>
-            </div>
-          `;
-        } else if (isImage) {
-          viewerBody.innerHTML = `
-            <div class="p-4 sm:p-6 w-full flex items-center justify-center">
-              <img src="${escapeHtml(sourceUrl)}" alt="${escapeHtml(label)}" class="max-w-full max-h-[70vh] rounded-xl shadow-sm border border-slate-200 bg-white object-contain">
-            </div>
-          `;
-        } else {
-          viewerBody.innerHTML = `
-            <iframe src="${escapeHtml(sourceUrl)}" title="${escapeHtml(label)}" class="w-full h-[70vh] border-0 bg-white"></iframe>
-          `;
-        }
-        return;
-      }
-
-      if (standardRows) standardRows.classList.remove('hidden');
-      if (splitView) splitView.classList.add('hidden');
-
-      const bcName = document.getElementById('conf-detail-breadcrumb-name');
-      const nameEl = document.getElementById('conf-detail-name');
-      const descEl = document.getElementById('conf-detail-desc');
-      const longDescWrap = document.getElementById('conf-detail-long-desc-wrap');
-      const longDescEl = document.getElementById('conf-detail-long-desc');
-      const datesEl = document.getElementById('conf-detail-dates');
-      const daysLeftEl = document.getElementById('conf-detail-days-left');
-      const scheduleEl = document.getElementById('conf-detail-schedule');
-      const addFilesLeftEl = document.getElementById('conf-detail-additional-files-left');
-      const addFilesEl = document.getElementById('conf-detail-additional-files');
-      const sheetIdEl = document.getElementById('conf-detail-sheet-id');
-      const themesEl = document.getElementById('conf-detail-themes');
-
-      if (bcName) bcName.textContent = conf.name;
-      if (nameEl) nameEl.textContent = conf.name;
-      if (descEl) descEl.textContent = conf.description || 'No short description provided.';
-
-      if (longDescWrap && longDescEl) {
-        const cleanLongHtml = sanitizeRichHtml(conf.detailedDescription || '');
-        if (cleanLongHtml) {
-          longDescEl.innerHTML = cleanLongHtml;
-          longDescWrap.classList.remove('hidden');
-        } else {
-          longDescEl.innerHTML = '';
-          longDescWrap.classList.add('hidden');
-        }
-      }
-
-      const sFmt = formatDateDDMMYYYY(conf.startDate);
-      const eFmt = formatDateDDMMYYYY(conf.endDate);
-      if (datesEl) {
-        if (sFmt && eFmt) {
-          datesEl.innerHTML = `
-            <span class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200/80 text-xs sm:text-sm font-semibold">
-              <i class="fa-regular fa-calendar"></i>
-              <span>${escapeHtml(sFmt)}</span>
-            </span>
-            <span class="text-xs sm:text-sm font-medium text-slate-500 px-0.5">to</span>
-            <span class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200/80 text-xs sm:text-sm font-semibold">
-              <i class="fa-regular fa-calendar-check"></i>
-              <span>${escapeHtml(eFmt)}</span>
-            </span>
-          `;
-        } else {
-          datesEl.innerHTML = `<span class="text-xs text-slate-400">Dates TBD</span>`;
-        }
-      }
-
-      if (daysLeftEl) {
-        const daysInfo = getDaysLeftToConference(conf.startDate, conf.endDate);
-        const toneClasses = {
-          indigo: 'text-slate-900',
-          amber: 'text-amber-700',
-          emerald: 'text-emerald-700',
-          slate: 'text-slate-400'
-        }[daysInfo.tone] || 'text-slate-900';
-        daysLeftEl.innerHTML = `
-          <span class="text-2xl sm:text-3xl font-extrabold tracking-tight tabular-nums ${toneClasses}">${escapeHtml(daysInfo.numeral)}</span>
-          <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">${escapeHtml(daysInfo.label)}</span>
-        `;
-      }
-
-      if (scheduleEl) {
-        const sched = conf.scheduleFile;
-        if (sched && sched.fileName) {
-          const sizeText = formatFileSizeBytes(sched.fileSize);
-          scheduleEl.innerHTML = `
-            <div class="inline-flex flex-wrap items-center gap-3 px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs sm:text-sm">
-              <i class="fa-solid fa-file-lines text-indigo-600"></i>
-              <span class="font-semibold text-slate-800">${escapeHtml(sched.fileName)}</span>
-              ${sizeText ? `<span class="text-xs text-slate-400">(${escapeHtml(sizeText)})</span>` : ''}
-              ${sched.dataUrl ? `<a href="${escapeHtml(sched.dataUrl)}" download="${escapeHtml(sched.fileName)}" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold transition inline-flex items-center gap-1.5"><i class="fa-solid fa-download text-[11px]"></i><span>Download</span></a>` : ''}
-            </div>
-          `;
-        } else {
-          scheduleEl.innerHTML = `<span class="text-xs text-slate-400">No schedule uploaded yet.</span>`;
-        }
-      }
-
-      if (addFilesLeftEl && addFilesEl) {
-        if (files.length === 0) {
-          addFilesLeftEl.innerHTML = '';
-          addFilesEl.innerHTML = `<span class="text-xs text-slate-400">No additional files uploaded.</span>`;
-        } else {
-          addFilesLeftEl.innerHTML = files.map((f, idx) => {
-            const label = f.title || f.uploadedFileName || `Attachment ${idx + 1}`;
-            return `
-              <button type="button" onclick="openAdditionalFilePreview(${idx})" class="w-full text-left px-3 py-2 rounded-xl bg-white hover:bg-indigo-50/70 border border-slate-200/90 hover:border-indigo-300 shadow-2xs transition flex items-center gap-2.5 group">
-                <i class="fa-solid fa-file-lines text-indigo-600 text-xs shrink-0"></i>
-                <span class="text-xs font-semibold text-slate-800 group-hover:text-indigo-700 truncate flex-1">${escapeHtml(label)}</span>
-                <i class="fa-solid fa-chevron-right text-[10px] text-slate-400 group-hover:text-indigo-600 shrink-0"></i>
-              </button>
-            `;
-          }).join('');
-
-          addFilesEl.innerHTML = `
-            <span class="text-xs text-slate-500">Select any document card on the left to open it in the right-hand pane (${files.length} ${files.length === 1 ? 'file' : 'files'} available).</span>
-          `;
-        }
-      }
-
-      if (sheetIdEl) {
-        const sheetId = String(conf.googleSheetId || '').trim();
-        if (sheetId) {
-          const sheetUrl = `https://docs.google.com/spreadsheets/d/${encodeURIComponent(sheetId)}/edit`;
-          sheetIdEl.innerHTML = `
-            <div class="inline-flex flex-wrap items-center gap-3 px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs sm:text-sm">
-              <i class="fa-solid fa-table text-emerald-600"></i>
-              <code class="font-mono font-semibold text-slate-800 break-all">${escapeHtml(sheetId)}</code>
-              <a href="${escapeHtml(sheetUrl)}" target="_blank" rel="noopener noreferrer" class="px-2.5 py-1 rounded-lg border border-slate-300 bg-white hover:bg-slate-100 text-slate-700 text-xs font-semibold transition inline-flex items-center gap-1.5">
-                <i class="fa-solid fa-arrow-up-right-from-square text-[11px]"></i>
-                <span>Open Sheet</span>
-              </a>
-            </div>
-          `;
-        } else {
-          sheetIdEl.innerHTML = `<span class="text-xs text-slate-400">No Google Sheet ID linked yet.</span>`;
-        }
-      }
-
-      const themes = Array.isArray(conf.themes) ? conf.themes : [];
-      if (themesEl) {
-        themesEl.innerHTML = themes.length === 0
-          ? '<span class="text-xs text-slate-400">No themes configured for this conference.</span>'
-          : themes.map(t => `<span class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 border border-slate-200 text-xs font-medium">${escapeHtml(t)}</span>`).join('');
-      }
+      return role === 'Super Admin' || role === 'System Admin' || role === 'Conference Admin' || userEmail === SUPER_ADMIN_EMAIL;
     }
 
     function renderConferencesList() {
       const container = document.getElementById('conferences-list-container');
       if (!container) return;
 
-      const searchQuery = (document.getElementById('conferences-search-input')?.value || '').trim().toLowerCase();
+      const query = (document.getElementById('conferences-search-input')?.value || '').trim().toLowerCase();
       const showCompleted = Boolean(document.getElementById('show-completed-conferences')?.checked);
       const todayISO = getTodayISO();
 
       const filtered = (state.conferences || []).filter(conf => {
-        const isCompleted = Boolean(conf.isClosed || (conf.endDate && conf.endDate < todayISO));
-        if (!showCompleted && isCompleted) return false;
-        if (!searchQuery) return true;
-        const hay = `${conf.name || ''} ${conf.description || ''} ${(conf.themes || []).join(' ')}`.toLowerCase();
-        return hay.includes(searchQuery);
+        const isCompleted = Boolean(conf.isClosed) || (conf.endDate && conf.endDate < todayISO);
+        if (showCompleted ? !isCompleted : isCompleted) return false;
+        if (!query) return true;
+        const themesText = Array.isArray(conf.themes) ? conf.themes.join(' ') : '';
+        return `${conf.name || ''} ${conf.description || ''} ${themesText}`.toLowerCase().includes(query);
       });
 
       if (filtered.length === 0) {
         container.innerHTML = `
-          <div class="text-center py-10 px-4 border border-dashed border-slate-300 rounded-2xl bg-slate-50/60 space-y-2">
-            <div class="w-10 h-10 rounded-xl bg-slate-200/80 text-slate-600 flex items-center justify-center mx-auto">
-              <i class="fa-solid fa-calendar-days"></i>
-            </div>
-            <h4 class="text-sm font-bold text-slate-800">No conferences found</h4>
+          <div class="text-center py-8 px-4 border border-dashed border-slate-300 rounded-2xl bg-slate-50/60 space-y-1.5">
+            <h4 class="text-sm font-bold text-slate-800">${showCompleted ? 'No Completed Conferences Found' : 'No Active Conferences Found'}</h4>
             <p class="text-xs text-slate-500 max-w-md mx-auto">
-              Click <strong>Add Conference</strong> in the top-right header to create a conference, or adjust your search and filter options.
+              ${showCompleted ? 'Closed or past conferences will appear here.' : 'Click <strong>Add Conference</strong> above to create your first conference.'}
             </p>
           </div>
         `;
@@ -3398,18 +3352,22 @@
                 const sFmt = formatDateDDMMYYYY(conf.startDate);
                 const eFmt = formatDateDDMMYYYY(conf.endDate);
                 const dateLabel = sFmt && eFmt ? (sFmt === eFmt ? sFmt : `${sFmt} to ${eFmt}`) : 'Dates TBD';
-                const daysInfo = getDaysLeftToConference(conf.startDate, conf.endDate);
-                const toneClasses = {
+                const daysInfo = conf.isClosed
+                  ? { numeral: 'Closed', label: 'Locked', tone: 'rose' }
+                  : getDaysLeftToConference(conf.startDate, conf.endDate);
+                const toneClass = {
                   indigo: 'text-slate-900',
                   amber: 'text-amber-700',
                   emerald: 'text-emerald-700',
+                  rose: 'text-rose-600',
                   slate: 'text-slate-400'
                 }[daysInfo.tone] || 'text-slate-900';
+
                 return `
                   <tr onclick="openConferenceDetails('${escapeHtml(conf.id)}')" class="hover:bg-slate-50 cursor-pointer transition">
                     <td class="px-4 py-3.5">
                       <div class="text-xs sm:text-sm font-bold text-slate-900">${escapeHtml(conf.name)}</div>
-                      ${conf.description ? `<div class="text-xs text-slate-500 line-clamp-1 mt-0.5">${escapeHtml(conf.description)}</div>` : ''}
+                      <div class="text-xs text-slate-500 line-clamp-1 mt-0.5">${escapeHtml(conf.description || '')}</div>
                     </td>
                     <td class="px-4 py-3.5 whitespace-nowrap">
                       <span class="inline-flex items-center gap-1.5 text-xs font-medium text-slate-700">
@@ -3419,13 +3377,427 @@
                     </td>
                     <td class="px-4 py-3.5 whitespace-nowrap text-center">
                       <div class="inline-flex flex-col items-center justify-center leading-none">
-                        <span class="text-2xl sm:text-3xl font-extrabold tracking-tight tabular-nums ${toneClasses}">${escapeHtml(daysInfo.numeral)}</span>
+                        <span class="text-2xl sm:text-3xl font-extrabold tracking-tight tabular-nums ${toneClass}">${escapeHtml(daysInfo.numeral)}</span>
                         <span class="text-[10px] font-semibold uppercase tracking-wider text-slate-500 mt-1">${escapeHtml(daysInfo.label)}</span>
                       </div>
                     </td>
                   </tr>
                 `;
               }).join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    function getEmbeddableDocumentUrl(url) {
+      const trimmed = String(url || '').trim();
+      if (!trimmed) return '';
+      const driveFileMatch = trimmed.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/);
+      if (driveFileMatch && driveFileMatch[1]) {
+        return `https://drive.google.com/file/d/${driveFileMatch[1]}/preview`;
+      }
+      const docsMatch = trimmed.match(/docs\.google\.com\/(document|spreadsheets|presentation)\/d\/([a-zA-Z0-9_-]+)/);
+      if (docsMatch && docsMatch[1] && docsMatch[2]) {
+        return `https://docs.google.com/${docsMatch[1]}/d/${docsMatch[2]}/preview`;
+      }
+      return trimmed;
+    }
+
+    function buildAdditionalFileCardButton(file, idx, isSelected = false) {
+      const displayName = String(file.title || file.uploadedFileName || `Document #${idx + 1}`).trim();
+      const hasAttachment = Boolean(file.dataUrl || file.fileUrl);
+      const baseClasses = isSelected
+        ? 'w-full text-left p-3 rounded-xl border border-indigo-400 bg-indigo-50/80 shadow-xs transition flex items-center justify-between gap-2.5'
+        : 'w-full text-left p-3 rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-white hover:border-slate-300 shadow-2xs transition flex items-center justify-between gap-2.5';
+      return `
+        <button type="button" onclick="openAdditionalFilePreview(${idx})" class="${baseClasses}">
+          <span class="flex items-center gap-2.5 min-w-0">
+            <i class="fa-regular fa-file-lines ${isSelected ? 'text-indigo-600' : 'text-slate-500'} text-sm shrink-0"></i>
+            <span class="text-xs font-semibold text-slate-800 truncate">${escapeHtml(displayName)}</span>
+          </span>
+          <i class="fa-solid ${hasAttachment ? 'fa-eye text-indigo-600' : 'fa-circle-info text-slate-400'} text-xs shrink-0"></i>
+        </button>
+      `;
+    }
+
+    function openAdditionalFilePreview(fileIndex) {
+      const conf = (state.conferences || []).find(c => c.id === selectedConferenceId);
+      if (!conf) return;
+      const files = Array.isArray(conf.additionalFiles) ? conf.additionalFiles : [];
+      if (fileIndex < 0 || fileIndex >= files.length) return;
+      activeAdditionalFilePreviewIndex = fileIndex;
+      renderConferenceDetailsView();
+    }
+
+    function closeAdditionalFilePreview() {
+      activeAdditionalFilePreviewIndex = null;
+      renderConferenceDetailsView();
+    }
+
+    function renderConferenceDetailsView() {
+      const conf = (state.conferences || []).find(c => c.id === selectedConferenceId);
+      if (!conf) return;
+
+      const standardRowsEl = document.getElementById('conf-details-standard-rows');
+      const splitViewEl = document.getElementById('conf-document-split-view');
+      const files = Array.isArray(conf.additionalFiles) ? conf.additionalFiles : [];
+
+      if (activeAdditionalFilePreviewIndex !== null && files[activeAdditionalFilePreviewIndex]) {
+        const selectedFile = files[activeAdditionalFilePreviewIndex];
+        const displayName = String(selectedFile.title || selectedFile.uploadedFileName || 'Document').trim();
+
+        if (standardRowsEl) standardRowsEl.classList.add('hidden');
+        if (splitViewEl) splitViewEl.classList.remove('hidden');
+
+        const splitFilesLeftEl = document.getElementById('conf-detail-split-files-left');
+        if (splitFilesLeftEl) {
+          splitFilesLeftEl.innerHTML = files
+            .map((f, idx) => buildAdditionalFileCardButton(f, idx, idx === activeAdditionalFilePreviewIndex))
+            .join('');
+        }
+
+        const headerEl = document.getElementById('conf-document-viewer-header');
+        const bodyEl = document.getElementById('conf-document-viewer-body');
+        if (headerEl) {
+          const externalHref = selectedFile.dataUrl || selectedFile.fileUrl || '';
+          headerEl.innerHTML = `
+            <div class="min-w-0">
+              <h4 class="text-xs sm:text-sm font-bold text-slate-900 truncate">${escapeHtml(displayName)}</h4>
+              ${selectedFile.uploadedFileName ? `<p class="text-[11px] text-slate-500 truncate">${escapeHtml(selectedFile.uploadedFileName)}</p>` : ''}
+            </div>
+            ${externalHref ? `
+              <a href="${escapeHtml(externalHref)}" ${selectedFile.dataUrl ? `download="${escapeHtml(selectedFile.uploadedFileName || displayName)}"` : 'target="_blank" rel="noopener noreferrer"'} class="px-3 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold inline-flex items-center gap-1.5 shrink-0">
+                <i class="fa-solid ${selectedFile.dataUrl ? 'fa-download' : 'fa-arrow-up-right-from-square'} text-[11px]"></i>
+                <span>${selectedFile.dataUrl ? 'Download' : 'Open External'}</span>
+              </a>
+            ` : ''}
+          `;
+        }
+
+        if (bodyEl) {
+          if (selectedFile.dataUrl) {
+            const mime = String(selectedFile.fileType || '').toLowerCase();
+            if (mime.startsWith('image/')) {
+              bodyEl.innerHTML = `<img src="${escapeHtml(selectedFile.dataUrl)}" alt="${escapeHtml(displayName)}" class="max-h-[68vh] w-auto object-contain p-4">`;
+            } else if (mime.includes('pdf') || mime.startsWith('text/')) {
+              bodyEl.innerHTML = `<iframe src="${escapeHtml(selectedFile.dataUrl)}" title="${escapeHtml(displayName)}" class="w-full h-[68vh] border-0 bg-white"></iframe>`;
+            } else {
+              bodyEl.innerHTML = `
+                <div class="p-8 text-center space-y-3">
+                  <div class="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto">
+                    <i class="fa-solid fa-file-arrow-down text-xl"></i>
+                  </div>
+                  <p class="text-sm font-bold text-slate-900">${escapeHtml(displayName)}</p>
+                  <p class="text-xs text-slate-500">Preview is not supported in-browser for this file format.</p>
+                  <a href="${escapeHtml(selectedFile.dataUrl)}" download="${escapeHtml(selectedFile.uploadedFileName || displayName)}" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold">
+                    <i class="fa-solid fa-download"></i>
+                    <span>Download File</span>
+                  </a>
+                </div>
+              `;
+            }
+          } else if (selectedFile.fileUrl) {
+            const embedUrl = getEmbeddableDocumentUrl(selectedFile.fileUrl);
+            bodyEl.innerHTML = `<iframe src="${escapeHtml(embedUrl)}" title="${escapeHtml(displayName)}" class="w-full h-[68vh] border-0 bg-white"></iframe>`;
+          } else {
+            bodyEl.innerHTML = `
+              <div class="p-8 text-center space-y-1.5">
+                <p class="text-sm font-bold text-slate-800">${escapeHtml(displayName)}</p>
+                <p class="text-xs text-slate-500">No file attachment or URL was uploaded for this entry.</p>
+              </div>
+            `;
+          }
+        }
+        return;
+      }
+
+      if (standardRowsEl) standardRowsEl.classList.remove('hidden');
+      if (splitViewEl) splitViewEl.classList.add('hidden');
+
+      const nameEl = document.getElementById('conf-detail-name');
+      const descEl = document.getElementById('conf-detail-desc');
+      const longDescWrap = document.getElementById('conf-detail-long-desc-wrap');
+      const longDescEl = document.getElementById('conf-detail-long-desc');
+      const datesEl = document.getElementById('conf-detail-dates');
+      const daysLeftEl = document.getElementById('conf-detail-days-left');
+      const themesEl = document.getElementById('conf-detail-themes');
+      const scheduleEl = document.getElementById('conf-detail-schedule');
+      const addFilesLeftEl = document.getElementById('conf-detail-additional-files-left');
+      const addFilesEl = document.getElementById('conf-detail-additional-files');
+      const sheetIdEl = document.getElementById('conf-detail-sheet-id');
+      const closedBannerEl = document.getElementById('conf-detail-closed-banner');
+      const footerActionsEl = document.getElementById('conf-details-footer-actions');
+
+      if (nameEl) nameEl.textContent = conf.name || '';
+      if (descEl) descEl.textContent = conf.description || '';
+
+      if (longDescWrap && longDescEl) {
+        const sanitized = sanitizeRichHtml(conf.detailedDescription || '');
+        if (sanitized) {
+          longDescEl.innerHTML = sanitized;
+          longDescWrap.classList.remove('hidden');
+        } else {
+          longDescEl.innerHTML = '';
+          longDescWrap.classList.add('hidden');
+        }
+      }
+
+      if (datesEl) {
+        const sFmt = formatDateDDMMYYYY(conf.startDate);
+        const eFmt = formatDateDDMMYYYY(conf.endDate);
+        datesEl.innerHTML = sFmt && eFmt
+          ? `<span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200/80 text-xs sm:text-sm font-semibold"><i class="fa-regular fa-calendar"></i>${escapeHtml(sFmt)}</span>
+             <span class="text-xs text-slate-500 font-medium">to</span>
+             <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200/80 text-xs sm:text-sm font-semibold"><i class="fa-regular fa-calendar-check"></i>${escapeHtml(eFmt)}</span>`
+          : `<span class="text-xs text-slate-400">Dates not configured yet</span>`;
+      }
+
+      if (daysLeftEl) {
+        const daysInfo = conf.isClosed
+          ? { numeral: 'Closed', label: 'Locked', tone: 'rose' }
+          : getDaysLeftToConference(conf.startDate, conf.endDate);
+        const toneClass = {
+          indigo: 'text-slate-900',
+          amber: 'text-amber-700',
+          emerald: 'text-emerald-700',
+          rose: 'text-rose-600',
+          slate: 'text-slate-400'
+        }[daysInfo.tone] || 'text-slate-900';
+        daysLeftEl.innerHTML = `
+          <span class="text-2xl sm:text-3xl font-extrabold tracking-tight tabular-nums ${toneClass}">${escapeHtml(daysInfo.numeral)}</span>
+          <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">${escapeHtml(daysInfo.label)}</span>
+        `;
+      }
+
+      if (themesEl) {
+        const themes = Array.isArray(conf.themes) ? conf.themes : [];
+        themesEl.innerHTML = themes.length > 0
+          ? themes.map(t => `<span class="px-3 py-1 rounded-full bg-slate-100 text-slate-800 border border-slate-200 text-xs font-medium">${escapeHtml(t)}</span>`).join('')
+          : `<span class="text-xs text-slate-400">No themes configured yet.</span>`;
+      }
+
+      if (scheduleEl) {
+        const sched = conf.scheduleFile;
+        if (sched && sched.fileName) {
+          const sizeLabel = formatFileSizeBytes(sched.fileSize);
+          scheduleEl.innerHTML = `
+            <div class="inline-flex flex-wrap items-center gap-2.5 px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs">
+              <i class="fa-solid fa-file-circle-check text-emerald-600"></i>
+              <span class="font-semibold text-slate-800">${escapeHtml(sched.fileName)}</span>
+              ${sizeLabel ? `<span class="text-slate-400">(${escapeHtml(sizeLabel)})</span>` : ''}
+              ${sched.dataUrl ? `<a href="${escapeHtml(sched.dataUrl)}" download="${escapeHtml(sched.fileName)}" class="text-indigo-600 hover:underline font-semibold">Download</a>` : ''}
+            </div>
+          `;
+        } else {
+          scheduleEl.innerHTML = `<span class="text-xs text-slate-400">No schedule file uploaded.</span>`;
+        }
+      }
+
+      if (addFilesLeftEl && addFilesEl) {
+        if (files.length === 0) {
+          addFilesLeftEl.innerHTML = '';
+          addFilesEl.innerHTML = `<span class="text-xs text-slate-400">No additional files uploaded.</span>`;
+        } else {
+          addFilesLeftEl.innerHTML = files.map((f, idx) => buildAdditionalFileCardButton(f, idx, false)).join('');
+          addFilesEl.innerHTML = `<span class="text-xs text-slate-500">Click any file card on the left to view the document here.</span>`;
+        }
+      }
+
+      if (sheetIdEl) {
+        if (conf.googleSheetId) {
+          const sheetUrl = `https://docs.google.com/spreadsheets/d/${encodeURIComponent(conf.googleSheetId)}/edit`;
+          sheetIdEl.innerHTML = `
+            <div class="flex flex-wrap items-center gap-2.5">
+              <code class="px-3 py-1.5 rounded-lg bg-slate-100 border border-slate-200 text-xs font-mono text-slate-800">${escapeHtml(conf.googleSheetId)}</code>
+              <a href="${escapeHtml(sheetUrl)}" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold inline-flex items-center gap-1.5">
+                <i class="fa-solid fa-arrow-up-right-from-square text-[11px]"></i>
+                <span>Open Sheet</span>
+              </a>
+            </div>
+          `;
+        } else {
+          sheetIdEl.innerHTML = `<span class="text-xs text-slate-400">No Google Sheet ID configured.</span>`;
+        }
+      }
+
+      if (closedBannerEl) {
+        if (conf.isClosed) closedBannerEl.classList.remove('hidden');
+        else closedBannerEl.classList.add('hidden');
+      }
+
+      if (footerActionsEl) {
+        if (!conf.isClosed && isCurrentUserConferenceAdmin()) {
+          footerActionsEl.classList.remove('hidden');
+        } else {
+          footerActionsEl.classList.add('hidden');
+        }
+      }
+    }
+
+    function openCloseConferenceDialog() {
+      if (!isCurrentUserConferenceAdmin()) {
+        showToast('Only Admins can close a conference.', 'warning');
+        return;
+      }
+      const conf = (state.conferences || []).find(c => c.id === selectedConferenceId);
+      if (!conf || conf.isClosed) return;
+
+      const modal = document.getElementById('close-conference-modal');
+      const subtitleEl = document.getElementById('close-conf-modal-subtitle');
+      const agreeInput = document.getElementById('close-conf-agree-input');
+      const confirmBtn = document.getElementById('close-conf-confirm-btn');
+
+      if (subtitleEl) subtitleEl.textContent = conf.name || 'Irreversible governance lock';
+      if (agreeInput) agreeInput.value = '';
+      if (confirmBtn) confirmBtn.disabled = true;
+      if (modal) modal.classList.remove('hidden');
+    }
+
+    function handleCloseConferenceAgreeInput() {
+      const agreeInput = document.getElementById('close-conf-agree-input');
+      const confirmBtn = document.getElementById('close-conf-confirm-btn');
+      if (!agreeInput || !confirmBtn) return;
+      confirmBtn.disabled = agreeInput.value.trim() !== 'I agree';
+    }
+
+    function cancelCloseConferenceDialog() {
+      const modal = document.getElementById('close-conference-modal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function confirmCloseConference() {
+      if (!isCurrentUserConferenceAdmin()) return;
+      const agreeInput = document.getElementById('close-conf-agree-input');
+      if (!agreeInput || agreeInput.value.trim() !== 'I agree') return;
+
+      const conf = (state.conferences || []).find(c => c.id === selectedConferenceId);
+      if (!conf) return;
+
+      conf.isClosed = true;
+      conf.closedAt = Date.now();
+      conf.updatedAt = Date.now();
+
+      if (usersPageSelectedConferenceId === conf.id) {
+        usersPageSelectedConferenceId = null;
+      }
+      if (expandedSidebarConferenceId === conf.id) {
+        expandedSidebarConferenceId = null;
+      }
+
+      cancelCloseConferenceDialog();
+      syncConferenceToCloud(conf);
+      renderAll();
+      switchTab('conference-details');
+      showToast(`Conference "${conf.name}" has been permanently closed.`, 'info');
+    }
+
+    function handleAddSystemAdmin(event) {
+      event.preventDefault();
+      if (!canCurrentUserAccessSettings()) {
+        showToast('Only Admin users can manage System Admins.', 'warning');
+        return;
+      }
+
+      const errEl = document.getElementById('system-admin-form-error');
+      const showError = (msg) => {
+        if (!errEl) return;
+        errEl.textContent = msg;
+        errEl.classList.remove('hidden');
+      };
+      if (errEl) errEl.classList.add('hidden');
+
+      const nameInput = document.getElementById('sysadmin-name-input');
+      const emailInput = document.getElementById('sysadmin-email-input');
+      if (!nameInput || !emailInput) return;
+
+      formatTitleCaseInput(nameInput);
+      const name = nameInput.value.trim();
+      const email = emailInput.value.trim().toLowerCase();
+
+      if (!name) return showError('Please enter the System Admin Name.');
+      if (!email) return showError('Please enter a Google Mail address.');
+      if (email === SUPER_ADMIN_EMAIL) {
+        return showError('director@spmniwas.in is already the hardcoded Super Admin.');
+      }
+      if (!isValidGoogleMail(email)) {
+        return showError('Please enter a valid Google Mail address (@gmail.com or @googlemail.com).');
+      }
+      if ((state.systemAdmins || []).some(sa => String(sa.email || '').toLowerCase().trim() === email)) {
+        return showError('This Google Mail address is already added as a System Admin.');
+      }
+
+      const newAdmin = {
+        id: `sysadmin_${Date.now()}`,
+        name,
+        email,
+        addedAt: Date.now()
+      };
+
+      state.systemAdmins = [newAdmin, ...(state.systemAdmins || [])];
+      document.getElementById('system-admin-form')?.reset();
+      syncSystemAdminsToCloud();
+      renderSystemAdminsList();
+      showToast(`Added ${name} as System Admin. Sending intimation email...`, 'success');
+
+      sendUserAssignmentEmail({
+        name,
+        email,
+        role: 'System Admin'
+      }).then(res => {
+        if (res && res.ok) {
+          showToast(`Intimation email sent to ${email}.`, 'success');
+        } else {
+          showToast(`System Admin added, but email could not be sent: ${(res && res.error) || 'Check Apps Script gateway'}`, 'warning');
+        }
+      });
+    }
+
+    function renderSystemAdminsList() {
+      const container = document.getElementById('system-admins-list-container');
+      const badge = document.getElementById('system-admins-count-badge');
+      if (!container) return;
+
+      const list = Array.isArray(state.systemAdmins) ? state.systemAdmins : [];
+      if (badge) badge.textContent = String(list.length);
+
+      if (list.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-8 px-4 border border-dashed border-slate-300 rounded-2xl bg-slate-50/60">
+            <p class="text-xs sm:text-sm text-slate-500">No System Admins added yet. Use the form above to assign one or more System Admins.</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = `
+        <div class="overflow-x-auto rounded-xl border border-slate-200">
+          <table class="min-w-full divide-y divide-slate-200 text-left">
+            <thead class="bg-slate-50">
+              <tr>
+                <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-slate-500">Name</th>
+                <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-slate-500">Google Mail</th>
+                <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-slate-500">Powers</th>
+                <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-slate-500 text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 bg-white">
+              ${list.map(sa => `
+                <tr class="hover:bg-slate-50/80 transition">
+                  <td class="px-4 py-3 text-xs sm:text-sm font-bold text-slate-900">${escapeHtml(sa.name)}</td>
+                  <td class="px-4 py-3 text-xs text-slate-700 font-medium">${escapeHtml(sa.email)}</td>
+                  <td class="px-4 py-3">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+                      System-Wide Admin (No Design/Code)
+                    </span>
+                  </td>
+                  <td class="px-4 py-3 text-right">
+                    <button type="button" onclick="removeSystemAdmin('${escapeHtml(sa.id)}')" title="Remove System Admin" class="p-2 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition">
+                      <i class="fa-solid fa-trash-can text-xs"></i>
+                    </button>
+                  </td>
+                </tr>
+              `).join('')}
             </tbody>
           </table>
         </div>
@@ -3786,8 +4158,8 @@
       const name = nameInput.value.trim();
       const designation = desigInput.value.trim();
       const email = document.getElementById('users-page-user-email').value.trim().toLowerCase();
-      const rawRole = document.getElementById('users-page-user-role').value;
-      const allowedAssignableRoles = ['Admin', 'Scrutinizer', 'Editorial Member', 'Reviewer'];
+      const rawRole = normalizeRoleName(document.getElementById('users-page-user-role').value);
+      const allowedAssignableRoles = ['Conference Admin', 'Scrutinizer', 'Editorial Member', 'Reviewer'];
       const role = allowedAssignableRoles.includes(rawRole) ? rawRole : 'Reviewer';
 
       const members = Array.isArray(conf.members) ? conf.members : [];
@@ -3820,49 +4192,25 @@
       syncConferenceToCloud(conf);
       renderAll();
       renderUsersPageSelectedConferencePanel();
-      showToast(`Added ${name} (${role}) to ${conf.name}.`, 'success');
-    }
+      showToast(`Added ${name} (${role}) to ${conf.name}. Sending intimation email...`, 'success');
 
-    function toggleAddedUsersSort(field) {
-      if (addedUsersSort.field === field) {
-        addedUsersSort.dir = addedUsersSort.dir === 'asc' ? 'desc' : 'asc';
-      } else {
-        addedUsersSort.field = field;
-        addedUsersSort.dir = 'asc';
-      }
-      renderUsersPageSelectedConferencePanel();
-    }
+      const sFmt = formatDateDDMMYYYY(conf.startDate);
+      const eFmt = formatDateDDMMYYYY(conf.endDate);
+      const dateLabel = sFmt && eFmt ? (sFmt === eFmt ? sFmt : `${sFmt} to ${eFmt}`) : '';
 
-    function removeUserFromConference(conferenceId, memberId) {
-      const conf = (state.conferences || []).find(c => c.id === conferenceId);
-      if (!conf) return;
-      if (conf.isClosed) {
-        showToast('This conference is closed. Team members cannot be modified.', 'warning');
-        return;
-      }
-      const member = (conf.members || []).find(m => m.id === memberId);
-      if (!member) return;
-
-      openAppConfirmDialog({
-        title: 'Remove Team Member',
-        subtitle: 'This user will lose access to this conference.',
-        message: `Are you sure you want to remove ${member.name} (${member.role}) from "${conf.name}"?`,
-        summaryItems: [
-          { label: 'User', value: `${member.name} — ${member.designation || member.role}`, emphasize: true },
-          { label: 'Google Mail', value: member.email }
-        ],
-        iconClass: 'fa-solid fa-user-minus',
-        tone: 'danger',
-        cancelLabel: 'Cancel',
-        confirmLabel: 'Remove User',
-        confirmIconClass: 'fa-solid fa-trash-can',
-        onConfirm: () => {
-          conf.members = (conf.members || []).filter(m => m.id !== memberId);
-          conf.updatedAt = Date.now();
-          syncConferenceToCloud(conf);
-          renderAll();
-          renderUsersPageSelectedConferencePanel();
-          showToast(`Removed ${member.name} from conference.`, 'info');
+      sendUserAssignmentEmail({
+        name,
+        email,
+        role,
+        designation,
+        conferenceName: conf.name,
+        conferenceDates: dateLabel,
+        themes: selectedThemes
+      }).then(res => {
+        if (res && res.ok) {
+          showToast(`Intimation email sent to ${email}.`, 'success');
+        } else {
+          showToast(`User added, but email could not be sent: ${(res && res.error) || 'Check Apps Script gateway'}`, 'warning');
         }
       });
     }
@@ -3917,6 +4265,7 @@
             </thead>
             <tbody class="divide-y divide-slate-100 bg-white">
               ${sorted.map(m => {
+                const displayRole = normalizeRoleName(m.role);
                 return `
                   <tr class="hover:bg-slate-50/80 transition">
                     <td class="px-4 py-3">
@@ -3926,7 +4275,7 @@
                     <td class="px-4 py-3 text-xs text-slate-700 font-medium">${escapeHtml(m.email)}</td>
                     <td class="px-4 py-3">
                       <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200">
-                        ${escapeHtml(m.role)}
+                        ${escapeHtml(displayRole)}
                       </span>
                     </td>
                     <td class="px-4 py-3 text-right">
@@ -3975,6 +4324,12 @@
 
       renderAccountUI();
       renderSidebarActiveConferences();
+      if (hasAuthorizedPortalAccess() && currentTab) {
+        const activeView = document.getElementById(`view-${currentTab.startsWith('conf-') ? 'conf-workspace' : currentTab}`);
+        if (activeView && activeView.classList.contains('hidden')) {
+          switchTab(currentTab);
+        }
+      }
       renderConferencesList();
       renderUsersActiveConferences();
       if (usersPageSelectedConferenceId) {
@@ -3985,6 +4340,9 @@
       }
       if (currentTab === 'conf-editors' || currentTab === 'conf-reviewers' || currentTab === 'conf-authors' || currentTab === 'conf-papers') {
         renderConferenceWorkspaceView();
+      }
+      if (currentTab === 'system-admin') {
+        renderSystemAdminsList();
       }
     }
 
@@ -3997,6 +4355,8 @@
       signInWithGoogleAccount,
       signOutGoogleAccount,
       resumeSuperAdminSession,
+      handleAddSystemAdmin,
+      removeSystemAdmin,
       openAddConferenceModal,
       closeAddConferenceModal,
       openEditConferencePage,
